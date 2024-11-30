@@ -2,7 +2,10 @@ package main
 
 import (
 	"embed"
+	"log"
 
+	"github.com/vladwithcode/lex_app/internal/db"
+	"github.com/vladwithcode/lex_app/internal/fetchers"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
@@ -14,6 +17,13 @@ import (
 var assets embed.FS
 
 func main() {
+	// Connect to DB
+	db, err := db.Connect()
+	if err != nil {
+		log.Fatalf("Couldn't connect to DB: %v\n", err)
+	}
+	defer db.Close()
+
 	// Create an instance of the app structure
 	app := NewApp()
 
