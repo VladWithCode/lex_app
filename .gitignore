@@ -1,0 +1,9 @@
+# Wails build 
+build/
+
+# Frontend
+dist/
+node_modules/
+
+# Database
+*.db
