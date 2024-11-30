@@ -42,6 +42,9 @@ func main() {
 		Bind: []interface{}{
 			app,
 		},
+		EnumBind: []interface{}{
+			fetchers.AllRegions,
+		},
 		Frameless: true,
 		Linux: &linux.Options{
 			WindowIsTranslucent: true,
