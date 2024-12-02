@@ -4,8 +4,8 @@ import (
 	"embed"
 	"log"
 
+	"github.com/vladwithcode/lex_app/internal"
 	"github.com/vladwithcode/lex_app/internal/db"
-	"github.com/vladwithcode/lex_app/internal/fetchers"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
@@ -43,7 +43,7 @@ func main() {
 			app,
 		},
 		EnumBind: []interface{}{
-			fetchers.AllRegions,
+			internal.AllRegions,
 		},
 		Frameless: true,
 		Linux: &linux.Options{

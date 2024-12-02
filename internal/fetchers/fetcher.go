@@ -1,10 +1,14 @@
 package fetchers
 
-import "time"
+import (
+	"time"
 
-func NewFetcher(region REGION) func(time.Time, string) (*[]byte, error) {
+	"github.com/vladwithcode/lex_app/internal"
+)
+
+func NewFetcher(region internal.REGION) func(time.Time, string) (*[]byte, error) {
 	switch region {
-	case REGION_DGO:
+	case internal.REGION_DGO:
 		return DgoFetch
 	default:
 		return DgoFetch

@@ -1,4 +1,4 @@
-export namespace fetchers {
+export namespace internal {
 	
 	export enum REGION {
 	    REGION_DGO = "MX_DGO_DGO",
