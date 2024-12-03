@@ -23,7 +23,7 @@ const dgoEstimateIndexColLen = 5
 
 // Modest estimation of the length of length of lines
 // considered rows
-const dgoMinRowLen = 64
+var dgoMinRowLen = dgoAvgLeadingWhitespace + dgoEstimateIndexColLen
 
 func dgoReader(data *[]byte) (caseTable *CaseTable, err error) {
 	rows := bytes.Split(*data, []byte{'\n'})
@@ -129,7 +129,7 @@ func dgoReader(data *[]byte) (caseTable *CaseTable, err error) {
 				cloned := tempCaseData.Clone()
 				caseTable.UnparsedCases = append(caseTable.UnparsedCases, &cloned)
 			} else {
-				caseTable.Cases = append(caseTable.Cases, caseRow)
+				caseTable.Add(caseRow)
 			}
 
 			tempCaseData.Clear()
