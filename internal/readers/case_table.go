@@ -13,6 +13,15 @@ type CaseData struct {
 	Accord   string
 }
 
+func NewCaseData() *CaseData {
+	return &CaseData{
+		CaseType: "",
+		CaseId:   "",
+		Nature:   "",
+		Accord:   "",
+	}
+}
+
 func (cd *CaseData) Clear() {
 	cd.CaseType = ""
 	cd.CaseId = ""
@@ -57,7 +66,7 @@ func NewCaseRow(caseData *CaseData) (*CaseRow, error) {
 	}
 
 	for _, id := range ids {
-		parts := strings.Split(id, "/-")
+		parts := strings.Split(id, "/")
 		if len(parts) < 2 {
 			continue
 		}
@@ -65,11 +74,12 @@ func NewCaseRow(caseData *CaseData) (*CaseRow, error) {
 		caseRow.AllIds = append(caseRow.AllIds, id)
 
 		if caseRow.CaseId == "" && isValidNumericStr(parts[0]) {
+			subParts := strings.Split(parts[1], "-")
 			caseRow.CaseId = id
 			caseRow.IdNo = parts[0]
-			caseRow.IdYear = parts[1]
-			if len(parts) == 3 {
-				caseRow.IdTrail = parts[2]
+			caseRow.IdYear = subParts[0]
+			if len(subParts) == 2 {
+				caseRow.IdTrail = subParts[1]
 			}
 		}
 	}

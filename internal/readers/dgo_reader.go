@@ -21,6 +21,10 @@ const dgoAvgLeadingWhitespace = 6
 // containing the index of the case
 const dgoEstimateIndexColLen = 5
 
+// Modest estimation of the length of length of lines
+// considered rows
+const dgoMinRowLen = 64
+
 func dgoReader(data *[]byte) (caseTable *CaseTable, err error) {
 	rows := bytes.Split(*data, []byte{'\n'})
 	if len(rows) == 0 {
@@ -38,17 +42,16 @@ func dgoReader(data *[]byte) (caseTable *CaseTable, err error) {
 	)
 
 	caseTable = NewCaseTable()
-	tempCaseData := CaseData{}
-	leftTrimCount := dgoAvgLeadingWhitespace + 1
+	tempCaseData := NewCaseData()
 
 	for rowNo, rowCount := 0, len(rows); rowNo < rowCount; rowNo++ {
-		if len(rows[rowNo]) == 0 {
+		if len(rows[rowNo]) < dgoMinRowLen {
 			continue
 		}
 
-		row := rows[rowNo][leftTrimCount:]
+		row := rows[rowNo][dgoAvgLeadingWhitespace:]
 
-		if !parsingCase && !dgoIsCaseRow(row) {
+		if !parsingCase && !dgoLineStartsCase(row) {
 			// If we aren't parsing and the current line is not a Case Row
 			// we skip it
 			continue
@@ -71,18 +74,24 @@ func dgoReader(data *[]byte) (caseTable *CaseTable, err error) {
 				continue
 			}
 
-			if !countingColLen && len(tempCols[currCol]) == colLens[currCol] {
-				// If the length of the columns is set we use the length
-				// to determine when to change column
-				currCol++
-				continue
-			}
+			if !countingColLen {
+				// fmt.Printf("col[%d] len: %d\n", currCol, colLens[currCol])
+				// fmt.Printf("tempCol[%d] len(%d): %s\n\n", currCol, len(tempCols[currCol]), string(tempCols[currCol]))
 
-			colLens[currCol]++
-			if dgoIsColumnSeparator(row, pos) {
-				currCol++
+				if len(tempCols[currCol]) == colLens[currCol] {
+					// If the length of the columns is set we use the length
+					// to determine when to change column
+					currCol++
+					continue
+				}
+			} else {
+				colLens[currCol]++
+				if dgoIsColumnSeparator(row, pos) {
+					currCol++
+				}
 			}
 		}
+		countingColLen = false
 
 		// There is a chance the file fetched has duplicate pages
 		//
@@ -100,26 +109,29 @@ func dgoReader(data *[]byte) (caseTable *CaseTable, err error) {
 			caseIdxMap[caseIdx] = true
 		}
 
-		tempCaseData.CaseId += string(tempCols[1]) + "\n"
-		tempCaseData.Nature += string(tempCols[2]) + "\n"
-		tempCaseData.Accord += string(tempCols[3]) + "\n"
+		tempCaseData.CaseId += strings.TrimSpace(string(tempCols[1])) + "\n"
+		tempCaseData.Nature += strings.TrimSpace(string(tempCols[2])) + "\n"
+		tempCaseData.Accord += strings.TrimSpace(string(tempCols[3])) + "\n"
 
 		if dgoNextLineEndsParsing(rows, rowNo) {
 			parsingCase = false
 
 			tempCaseData.CaseId = strings.TrimSpace(tempCaseData.CaseId)
+			tempCaseData.CaseId = strings.TrimLeft(tempCaseData.CaseId, "0")
+
 			tempCaseData.Nature = strings.TrimSpace(tempCaseData.Nature)
 			tempCaseData.Accord = strings.TrimSpace(tempCaseData.Accord)
 
-			caseRow, err := NewCaseRow(&tempCaseData)
+			caseRow, err := NewCaseRow(tempCaseData)
 			if err != nil {
 				// For cases that do not produce a valid caseRow
 				// save them as unparsed for possible force search
 				cloned := tempCaseData.Clone()
 				caseTable.UnparsedCases = append(caseTable.UnparsedCases, &cloned)
+			} else {
+				caseTable.Cases = append(caseTable.Cases, caseRow)
 			}
 
-			caseTable.Cases = append(caseTable.Cases, caseRow)
 			tempCaseData.Clear()
 		}
 	}
@@ -127,9 +139,13 @@ func dgoReader(data *[]byte) (caseTable *CaseTable, err error) {
 	return
 }
 
-func dgoIsCaseRow(row []byte) bool {
+func dgoLineStartsCase(row []byte) bool {
+	if len(row) < dgoMinRowLen {
+		return false
+	}
 	// Check the first few chars of the line to see if it is a case row
 	lineStart := string(row[:dgoEstimateIndexColLen])
+	lineStart = strings.TrimSpace(lineStart)
 	_, parseErr := strconv.Atoi(lineStart)
 
 	return parseErr == nil
@@ -138,7 +154,16 @@ func dgoIsCaseRow(row []byte) bool {
 func dgoNextLineEndsParsing(rows [][]byte, currRow int) bool {
 	// No more lines | Empty lines | New Case Row lines
 	// represent the end of a single CaseRow parsing
-	return currRow+1 > len(rows) || len(rows[currRow+1]) == 0 || dgoIsCaseRow(rows[currRow+1])
+	if currRow+1 >= len(rows) || len(rows[currRow+1]) < dgoMinRowLen {
+		return false
+	}
+
+	var (
+		nextRow    = rows[currRow+1][dgoAvgLeadingWhitespace:]
+		trimmedRow = string(nextRow)
+	)
+
+	return len(trimmedRow) == 0 || dgoLineStartsCase(nextRow) || strings.Contains(trimmedRow, "PAGINA")
 }
 
 // Checks if the current character counts as a column separator
@@ -152,7 +177,7 @@ func dgoIsColumnSeparator(row []byte, pos int) bool {
 	prevChar := safeCheckPrevIdx(row, pos)
 	nextChar := safeCheckNextIdx(row, pos)
 
-	return nextChar != ' ' && prevChar == ' ' && char == ' '
+	return prevChar == ' ' && char == ' ' && nextChar != ' '
 
 	// TODO: Search internet to make sure that `nextChar != byte('0')` is not necessary
 	// or that it actually refers to comparison against the `nul` character
@@ -163,20 +188,16 @@ func dgoIsColumnSeparator(row []byte, pos int) bool {
 }
 
 func safeCheckPrevIdx(chk []byte, currIdx int) (prevByte byte) {
-	prevIdx := currIdx - 1
-	if prevIdx < 0 {
-		return
+	if currIdx == 0 {
+		return byte('\x00')
 	}
 
-	prevByte = chk[prevIdx]
-	return
+	return chk[currIdx-1]
 }
 func safeCheckNextIdx(chk []byte, currIdx int) (nextByte byte) {
-	nextIdx := currIdx + 1
-	if nextIdx >= len(chk) {
-		return
+	if currIdx+1 == len(chk) {
+		return byte('\x00')
 	}
 
-	nextByte = chk[nextByte]
-	return
+	return chk[currIdx+1]
 }
