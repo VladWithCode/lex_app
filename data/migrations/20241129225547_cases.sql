@@ -4,10 +4,10 @@ CREATE TABLE cases (
     id text PRIMARY KEY NOT NULL,
     case_id text NOT NULL,
     case_type text NOT NULL,
-    case_year int DEFAULT 0,
-    case_code int DEFAULT 0,
-    last_updated_at real,
+    case_year string DEFAULT 0,
+    case_no string DEFAULT 0,
     alias text DEFAULT '',
+    other_ids text DEFAULT '',
 
     CONSTRAINT unique_case_id UNIQUE(case_id, case_type)
 );
