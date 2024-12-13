@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"os"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
+	_ "modernc.org/sqlite"
 )
 
 const DEFAULT_CONN_STR = "./data/lex_app.db"
@@ -18,7 +18,8 @@ func Connect() (db *sql.DB, err error) {
 	if connStr == "" {
 		connStr = DEFAULT_CONN_STR
 	}
-	db, err = sql.Open("sqlite3", connStr)
+
+	db, err = sql.Open("sqlite", "file:"+connStr)
 	if err != nil {
 		return nil, err
 	}
