@@ -147,7 +147,7 @@ func InsertCase(ctx context.Context, appDb *sql.DB, caseData *Case) error {
 	_, err := appDb.ExecContext(
 		ctx,
 		`INSERT INTO cases (id, case_id, case_type, case_year, case_no, alias, other_ids)
-		VALUES (@Id, @CaseId, @CaseType, @CaseYear, @CaseNo, @Alias, @OtherIds)`,
+		VALUES (:Id, :CaseId, :CaseType, :CaseYear, :CaseNo, :Alias, :OtherIds)`,
 		sql.Named("Id", caseData.Id),
 		sql.Named("CaseId", caseData.CaseId),
 		sql.Named("CaseType", caseData.CaseType),
@@ -348,7 +348,7 @@ FROM cases LEFT JOIN (
 func FindCaseById(ctx context.Context, appDb *sql.DB, id string) (*Case, error) {
 	row := appDb.QueryRowContext(
 		ctx,
-		`SELECT id, case_id, case_type, case_year, case_no, alias, other_ids FROM cases WHERE id = @Id`,
+		`SELECT id, case_id, case_type, case_year, case_no, alias, other_ids FROM cases WHERE id = :Id`,
 		sql.Named("Id", id),
 	)
 
@@ -377,7 +377,7 @@ func FindCaseById(ctx context.Context, appDb *sql.DB, id string) (*Case, error) 
 func FindCase(ctx context.Context, appDb *sql.DB, caseId, caseType string) (*Case, error) {
 	row := appDb.QueryRowContext(
 		ctx,
-		"SELECT id, case_id, case_type, case_year, case_no, alias, other_ids FROM cases WHERE case_id = @CaseId AND case_type = @CaseType",
+		"SELECT id, case_id, case_type, case_year, case_no, alias, other_ids FROM cases WHERE case_id = :CaseId AND case_type = :CaseType",
 		sql.Named("CaseId", caseId),
 		sql.Named("CaseType", caseType),
 	)
@@ -475,22 +475,22 @@ func UpdateCaseById(ctx context.Context, appDb *sql.DB, id string, newCaseData *
 			return fmt.Errorf("Can't insert/update case with invalid id: %s\n  %w", newCaseData.CaseId, ErrorInvalidCaseId)
 		}
 
-		cols = append(cols, "case_id = @CaseId")
+		cols = append(cols, "case_id = :CaseId")
 		args = append(args, sql.Named("CaseId", newCaseData.CaseId))
 	}
 
 	if newCaseData.CaseType != "" {
-		cols = append(cols, "case_type = @CaseType")
+		cols = append(cols, "case_type = :CaseType")
 		args = append(args, sql.Named("CaseType", newCaseData.CaseType))
 	}
 
 	if newCaseData.Alias != "" {
-		cols = append(cols, "alias = @Alias")
+		cols = append(cols, "alias = :Alias")
 		args = append(args, sql.Named("Alias", newCaseData.Alias))
 	}
 
 	if newCaseData.OtherIds != nil {
-		cols = append(cols, "other_ids = @OtherIds")
+		cols = append(cols, "other_ids = :OtherIds")
 		args = append(args, sql.Named("OtherIds", newCaseData.OtherIds))
 	}
 
@@ -500,7 +500,7 @@ func UpdateCaseById(ctx context.Context, appDb *sql.DB, id string, newCaseData *
 
 	args = append(args, sql.Named("Id", id))
 
-	query := fmt.Sprintf("UPDATE cases SET %s WHERE id = @Id", strings.Join(cols, ", "))
+	query := fmt.Sprintf("UPDATE cases SET %s WHERE id = :Id", strings.Join(cols, ", "))
 
 	_, err := appDb.ExecContext(ctx, query, args...)
 	if err != nil {
