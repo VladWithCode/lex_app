@@ -5,7 +5,6 @@
 html,
 body {
     @apply rounded-lg;
-    @apply bg-stone-900;
 }
 
 body {
