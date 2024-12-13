@@ -9,20 +9,16 @@ export type CaseCardProps = React.PropsWithChildren & {
     caseData: db.lexCase
 }
 
-export default function CaseCard({ caseData }: CaseCardProps) {
+export default function CaseCard({ caseData, children }: CaseCardProps) {
     return (
         <Card className="bg-zinc-900 basis-1/3 flex-grow-0 flex-shrink-0 overflow-hidden">
             <CardHeader className="p-3">
                 <CardTitle className="text-lg font-medium">Expediente {caseData.caseId} | {caseTypeToName(caseData.caseType as CaseType)}</CardTitle>
             </CardHeader>
             <Separator />
-            <CardContent className="space-y-2 px-3 py-1.5 pb-3">
-                <p className="text-stone-400 font-semibold">Ultimo acceso: {caseData.lastAccessedAt}</p>
-                <p className="text-stone-200">
-                    EJECUTIVO MERCANTIL PRESTAMOS FELICES EN 15
-                    MINUTOS SOCIEDAD...
-                </p>
-            </CardContent>
+            {
+                children ? children : <DefaultCardContent caseData={caseData} />
+            }
             <Separator />
             <CardFooter className="p-0">
                 <Button
@@ -32,5 +28,13 @@ export default function CaseCard({ caseData }: CaseCardProps) {
                 </Button>
             </CardFooter>
         </Card>
+    )
+}
+
+function DefaultCardContent({ caseData }: CaseCardProps) {
+    return (
+        <CardContent className="space-y-2 px-3 py-1.5 pb-3">
+            <p className="text-stone-200 font-medium">Ultimo acceso: {caseData.lastAccessedAt}</p>
+        </CardContent>
     )
 }
