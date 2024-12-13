@@ -3,7 +3,7 @@ import { useCases } from "../../queries/cases"
 import { LucideLoader } from "lucide-react"
 
 export default function CaseListing() {
-    const { data, isSuccess, isLoading, isError } = useCases({ limit: 5 })
+    const { data, isSuccess, isLoading, isError } = useCases({ Limit: 5 })
 
     if (isError) {
         return <div className="flex h-36 items-center justify-center">
