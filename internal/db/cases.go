@@ -23,22 +23,22 @@ var (
 )
 
 type Case struct {
-	Id            string    `json:"id" db:"id"`
-	CaseId        string    `json:"caseId" db:"case_id"`
-	CaseType      string    `json:"caseType" db:"case_type"`
-	CaseYear      *string   `json:"caseYear" db:"case_year"`
-	CaseNo        *string   `json:"caseNo" db:"case_no"`
-	LastUpdatedAt time.Time `json:"lastUpdatedAt" db:"last_updated_at"`
-	Alias         *string   `json:"alias" db:"alias"`
-	OtherIds      []string  `json:"otherIds" db:"other_ids"`
+	Id             string    `json:"id" db:"id"`
+	CaseId         string    `json:"caseId" db:"case_id"`
+	CaseType       string    `json:"caseType" db:"case_type"`
+	CaseYear       string    `json:"caseYear" db:"case_year"`
+	CaseNo         string    `json:"caseNo" db:"case_no"`
+	LastUpdatedAt  time.Time `json:"lastUpdatedAt" db:"last_updated_at"`
+	LastAccessedAt time.Time `json:"lastAccessedAt" db:"last_accessed_at"`
+	Alias          string    `json:"alias" db:"alias"`
+	OtherIds       []string  `json:"otherIds" db:"other_ids"`
+	Accords        []*Accord `json:"accords"`
 }
 
 func NewEmptyCase() *Case {
 	return &Case{
-		CaseYear: new(string),
-		CaseNo:   new(string),
-		Alias:    new(string),
 		OtherIds: []string{},
+		Accords:  []*Accord{},
 	}
 }
 
@@ -50,8 +50,8 @@ func NewCase(caseId, caseType string) (*Case, error) {
 	c := &Case{
 		CaseId:   caseId,
 		CaseType: caseType,
-		CaseYear: new(string),
-		CaseNo:   new(string),
+		OtherIds: []string{},
+		Accords:  []*Accord{},
 	}
 
 	id, err := uuid.NewV7()
@@ -65,8 +65,8 @@ func NewCase(caseId, caseType string) (*Case, error) {
 		strings.Split(caseId, caseTrailSeparator)[0],
 		casePartsSeparator,
 	)
-	c.CaseNo = &parts[0]
-	c.CaseYear = &parts[1]
+	c.CaseNo = parts[0]
+	c.CaseYear = parts[1]
 
 	c.AddOtherId(caseId)
 
@@ -129,9 +129,9 @@ func InsertCase(caseData *Case) error {
 		sql.Named("Id", caseData.Id),
 		sql.Named("CaseId", caseData.CaseId),
 		sql.Named("CaseType", caseData.CaseType),
-		sql.Named("CaseYear", *caseData.CaseYear),
-		sql.Named("CaseNo", *caseData.CaseNo),
-		sql.Named("Alias", *caseData.Alias),
+		sql.Named("CaseYear", caseData.CaseYear),
+		sql.Named("CaseNo", caseData.CaseNo),
+		sql.Named("Alias", caseData.Alias),
 		sql.Named("OtherIds", otherIds),
 	)
 
@@ -155,27 +155,47 @@ func FindAllCases() ([]*Case, error) {
 	}
 
 	cases := []*Case{}
+	nOtherIds := sql.NullString{}
+	nCaseYear := sql.NullString{}
+	nCaseNo := sql.NullString{}
+	nAlias := sql.NullString{}
+
 	for rows.Next() {
+		nOtherIds.Valid = false
+		nCaseYear.Valid = false
+		nCaseNo.Valid = false
+		nAlias.Valid = false
 		c := &Case{}
-		otherIds := new(string)
-		err = rows.Scan(
+
+		rows.Scan(
 			&c.Id,
 			&c.CaseId,
 			&c.CaseType,
-			c.CaseYear,
-			c.CaseNo,
-			c.Alias,
-			otherIds,
+			&nCaseYear,
+			&nCaseNo,
+			&nAlias,
+			&nOtherIds,
 		)
-		if err != nil {
-			return nil, err
+		if nCaseYear.Valid {
+			c.CaseYear = nCaseYear.String
+		}
+		if nCaseNo.Valid {
+			c.CaseNo = nCaseNo.String
+		}
+		if nAlias.Valid {
+			c.Alias = nAlias.String
 		}
 
-		if len(*otherIds) > 0 {
-			c.SetIdsFromStr(*otherIds)
+		if nOtherIds.Valid {
+			c.SetIdsFromStr(nOtherIds.String)
 		}
 
 		cases = append(cases, c)
+	}
+
+	if err := rows.Err(); err != nil {
+		fmt.Printf("err: %v\n", err)
+		return nil, err
 	}
 
 	return cases, nil
@@ -197,10 +217,10 @@ func FindCaseById(id string) (*Case, error) {
 		&c.Id,
 		&c.CaseId,
 		&c.CaseType,
-		c.CaseYear,
-		c.CaseNo,
-		c.Alias,
-		otherIds,
+		&c.CaseYear,
+		&c.CaseNo,
+		&c.Alias,
+		&otherIds,
 	)
 	if err != nil {
 		return nil, err
@@ -230,9 +250,9 @@ func FindCase(caseId, caseType string) (*Case, error) {
 		&c.Id,
 		&c.CaseId,
 		&c.CaseType,
-		c.CaseYear,
-		c.CaseNo,
-		c.Alias,
+		&c.CaseYear,
+		&c.CaseNo,
+		&c.Alias,
 		otherIds,
 	)
 
@@ -268,7 +288,7 @@ func UpdateCaseById(id string, newCaseData *Case) error {
 		args = append(args, sql.Named("CaseType", newCaseData.CaseType))
 	}
 
-	if newCaseData.Alias != nil {
+	if newCaseData.Alias != "" {
 		cols = append(cols, "alias = @Alias")
 		args = append(args, sql.Named("Alias", newCaseData.Alias))
 	}
