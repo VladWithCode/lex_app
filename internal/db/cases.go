@@ -117,6 +117,28 @@ func isValidCaseId(candidate string) bool {
 	return true
 }
 
+type FindCaseOptions struct {
+	Limit          int
+	CaseId         string
+	CaseType       string
+	CaseYear       string
+	CaseNo         string
+	LastUpdatedAt  string
+	IncludeAccords bool
+	MaxAccords     int
+}
+
+var DefaultFindCaseOptions = FindCaseOptions{
+	Limit:          0,
+	CaseId:         "",
+	CaseType:       "",
+	CaseYear:       "",
+	CaseNo:         "",
+	LastUpdatedAt:  "",
+	IncludeAccords: false,
+	MaxAccords:     1,
+}
+
 func InsertCase(ctx context.Context, appDb *sql.DB, caseData *Case) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -195,6 +217,129 @@ func FindAllCases(ctx context.Context, appDb *sql.DB) ([]*Case, error) {
 
 	if err := rows.Err(); err != nil {
 		fmt.Printf("err: %v\n", err)
+		return nil, err
+	}
+
+	return cases, nil
+}
+
+func FindFilteredCases(ctx context.Context, appDb *sql.DB, opts *FindCaseOptions) ([]*Case, error) {
+	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
+	defer cancel()
+	baseQuery := ""
+	args := []interface{}{}
+	conditions := []string{}
+	if opts.IncludeAccords {
+		baseQuery = `SELECT 
+cases.id, cases.case_id, cases.case_type, cases.case_year, cases.case_no, cases.alias,
+cases.other_ids, accords.accord_id, accords.content, unixepoch(accords.date) as date, accords.raw_data
+FROM cases LEFT JOIN (
+	SELECT
+		id as accord_id, for_case, content, date, raw_data,
+		ROW_NUMBER() OVER (PARTITION BY for_case ORDER BY date DESC NULLS LAST) as rn
+	FROM accords
+) accords ON cases.id = accords.for_case AND accords.rn <= :accordCount`
+		args = append(args, sql.Named("accordCount", opts.MaxAccords))
+	} else {
+		baseQuery = "SELECT * FROM cases"
+	}
+
+	if opts.CaseId != "" {
+		conditions = append(conditions, "case_id LIKE '%%:caseId%'")
+		args = append(args, sql.Named("caseId", opts.CaseId))
+	}
+	if opts.CaseType != "" {
+		conditions = append(conditions, "case_type LIKE '%%:caseType%'")
+		args = append(args, sql.Named("caseType", opts.CaseType))
+	}
+	if opts.CaseYear != "" {
+		conditions = append(conditions, "case_year LIKE '%%:caseYear%'")
+		args = append(args, sql.Named("caseYear", opts.CaseYear))
+	}
+	if opts.CaseNo != "" {
+		conditions = append(conditions, "case_no LIKE '%%:caseNo%'")
+		args = append(args, sql.Named("caseNo", opts.CaseNo))
+	}
+	if opts.LastUpdatedAt != "" {
+		conditions = append(conditions, "julianday(accords.date) >= julianday(:lastUpdated)")
+		args = append(args, sql.Named("lastUpdated", opts.LastUpdatedAt))
+	}
+
+	if len(conditions) > 0 {
+		baseQuery = fmt.Sprintf("%s WHERE %s", baseQuery, strings.Join(conditions, " AND "))
+	}
+
+	if opts.IncludeAccords {
+		baseQuery = fmt.Sprintf("%s ORDER BY accords.date DESC NULLS LAST", baseQuery)
+	}
+	if opts.Limit > 0 {
+		baseQuery = fmt.Sprintf("%s LIMIT :limit", baseQuery)
+		args = append(args, sql.Named("limit", opts.Limit))
+	}
+
+	rows, err := appDb.QueryContext(
+		ctx,
+		baseQuery,
+		args...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	cases := []*Case{}
+	caseMap := map[string]int{}
+	for rows.Next() {
+		var (
+			id       = ""
+			caseId   = ""
+			caseType = ""
+			caseYear = sql.NullString{}
+			caseNo   = sql.NullString{}
+			alias    = sql.NullString{}
+			othIds   = sql.NullString{}
+			accord   = Accord{}
+			accDate  = 0
+		)
+
+		rows.Scan(
+			&id,
+			&caseId,
+			&caseType,
+			&caseYear,
+			&caseNo,
+			&alias,
+			&othIds,
+			&accord.Id,
+			&accord.Content,
+			&accDate,
+			&accord.rawData,
+		)
+		if accDate != 0 {
+			accord.Date = time.Unix(int64(accDate), 0)
+		}
+
+		if cIdx, ok := caseMap[id]; ok {
+			cases[cIdx].Accords = append(cases[cIdx].Accords, &accord)
+		} else {
+			c := NewEmptyCase()
+			c.Id = id
+			c.CaseId = caseId
+			c.CaseType = caseType
+			c.CaseYear = caseYear.String
+			c.CaseNo = caseNo.String
+			c.Alias = alias.String
+			c.Accords = []*Accord{&accord}
+			if othIds.Valid {
+				c.SetIdsFromStr(othIds.String)
+			}
+
+			// Curent length is next idx
+			caseMap[c.Id] = len(cases)
+			cases = append(cases, c)
+		}
+	}
+
+	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 

@@ -26,6 +26,14 @@ func (ctrl *CaseController) FindAllCases() ([]*db.Case, error) {
 	return db.FindAllCases(ctrl.ctx, ctrl.appDb.Db)
 }
 
+func (ctrl *CaseController) FindCases(opts *db.FindCaseOptions) ([]*db.Case, error) {
+	if opts != nil {
+		return db.FindFilteredCases(ctrl.ctx, ctrl.appDb.Db, opts)
+	}
+
+	return db.FindAllCases(ctrl.ctx, ctrl.appDb.Db)
+}
+
 func (ctrl *CaseController) FindCaseById(id string) (*db.Case, error) {
 	return db.FindCaseById(ctrl.ctx, ctrl.appDb.Db, id)
 }

@@ -1,20 +1,13 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { CreateCase, FindAllCases, FindCaseById, FindCaseWithAccords, UpdateCase } from "../../wailsjs/go/controllers/CaseController"
+import { CreateCase, FindCaseById, FindCases, FindCaseWithAccords, UpdateCase } from "../../wailsjs/go/controllers/CaseController"
 import { db } from "../../wailsjs/go/models";
 
-export type CaseFilters = {
-    caseType?: string;
-    caseId?: string;
-    caseNo?: string;
-    caseYear?: string;
-    alias?: string;
-    limit: number;
-}
+export type FindCaseOptions = Partial<db.lexFindCaseOptions>
 
 const caseKeys = {
     all: ["cases"] as const,
     lists: () => [...caseKeys.all, "list"] as const,
-    list: (filters?: CaseFilters) => [...caseKeys.lists(), filters] as const,
+    list: (filters?: FindCaseOptions) => [...caseKeys.lists(), filters] as const,
     //listWith: (filters: CaseFilters) => [...caseKeys.lists(), filters] as const,
     details: () => [...caseKeys.all, "detail"] as const,
     detail: (id: string) => [...caseKeys.details(), id] as const,
@@ -23,16 +16,12 @@ const caseKeys = {
     detailAndAccords: (id: string, accordCount: number) => [...caseKeys.detailsAndAccords(), id, accordCount] as const
 }
 
-export function useCases(filters: CaseFilters) {
+export function useCases(filters: FindCaseOptions) {
     return useQuery({
         queryKey: caseKeys.list(filters),
         queryFn: async () => {
-            return await new Promise<db.lexCase[]>((resolve) => {
-                setTimeout(async () => {
-                    resolve(await FindAllCases())
-                }, 1500)
-            })
-        },
+            return await FindCases(filters as db.lexFindCaseOptions)
+        }
     })
 }
 
