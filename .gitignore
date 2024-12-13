@@ -4,6 +4,7 @@ build/
 # Frontend
 dist/
 node_modules/
+wailsjs/
 
 # Database
 *.db
