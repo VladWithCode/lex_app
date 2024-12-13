@@ -172,7 +172,6 @@ func FindAllCases(ctx context.Context, appDb *sql.DB) ([]*Case, error) {
 		"SELECT id, case_id, case_type, case_year, case_no, alias, other_ids FROM cases",
 	)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
 		return nil, err
 	}
 
