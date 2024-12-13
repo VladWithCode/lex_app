@@ -9,5 +9,10 @@
   "author": {
     "name": "Bladimir Cabrera",
     "email": "vladwithcode@gmail.com"
+  },
+  "bindings": {
+      "ts_generation": {
+          "prefix": "lex"
+      }
   }
 }
