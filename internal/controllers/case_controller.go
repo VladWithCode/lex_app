@@ -1,20 +1,25 @@
 package controllers
 
 import (
+	"database/sql"
+
+	"github.com/vladwithcode/lex_app/internal"
 	"github.com/vladwithcode/lex_app/internal/db"
 	"golang.org/x/net/context"
 )
 
 type CaseController struct {
-	ctx context.Context
+	ctx   context.Context
+	appDb *internal.AppDb
 }
 
 func NewCaseControler() *CaseController {
 	return &CaseController{}
 }
 
-func (ctrl *CaseController) Startup(ctx context.Context) {
+func (ctrl *CaseController) Startup(ctx context.Context, db *sql.DB) {
 	ctrl.ctx = ctx
+	ctrl.appDb = internal.NewAppDb(db)
 }
 
 func (ctrl *CaseController) FindAllCases() ([]*db.Case, error) {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/vladwithcode/lex_app/internal"
 	"github.com/vladwithcode/lex_app/internal/controllers"
-	"github.com/vladwithcode/lex_app/internal/db"
+	_db "github.com/vladwithcode/lex_app/internal/db"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
@@ -20,7 +20,7 @@ var assets embed.FS
 
 func main() {
 	// Connect to DB
-	db, err := db.Connect()
+	db, err := _db.Connect()
 	if err != nil {
 		log.Fatalf("Couldn't connect to DB: %v\n", err)
 	}
@@ -42,8 +42,8 @@ func main() {
 		},
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
 		OnStartup: func(ctx context.Context) {
-			app.startup(ctx)
-			caseCtrl.Startup(ctx)
+			app.startup(ctx, db)
+			caseCtrl.Startup(ctx, db)
 		},
 		Bind: []interface{}{
 			app,
