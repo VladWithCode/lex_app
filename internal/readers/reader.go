@@ -8,11 +8,11 @@ import (
 
 // Returns a reader func that takes an pointer to an byte
 // slice and creates a CaseTable
-func NewReader(region internal.REGION) func(*[]byte) (*CaseTable, error) {
+func NewReader(region internal.Region) func(*[]byte) (*CaseTable, error) {
 	switch region {
 	default:
 		return dgoReader
-	case internal.REGION_DGO:
+	case internal.RegionDgo:
 		return dgoReader
 	}
 }

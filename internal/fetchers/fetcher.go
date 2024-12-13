@@ -6,9 +6,9 @@ import (
 	"github.com/vladwithcode/lex_app/internal"
 )
 
-func NewFetcher(region internal.REGION) func(time.Time, string) (*[]byte, error) {
+func NewFetcher(region internal.Region) func(time.Time, string) (*[]byte, error) {
 	switch region {
-	case internal.REGION_DGO:
+	case internal.RegionDgo:
 		return DgoFetch
 	default:
 		return DgoFetch

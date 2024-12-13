@@ -51,6 +51,7 @@ func main() {
 		},
 		EnumBind: []interface{}{
 			internal.AllRegions,
+			internal.AllCaseTypes,
 		},
 		Frameless: true,
 		Linux: &linux.Options{
