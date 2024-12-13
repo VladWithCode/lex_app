@@ -8,7 +8,7 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-const DEFAULT_CONN_STR = "./data/lex_app.db"
+const DEFAULT_CONN_STR = "data/lex_app.db"
 
 var connStr = os.Getenv("LEX_DB_URL")
 
