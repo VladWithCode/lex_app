@@ -117,12 +117,12 @@ func isValidCaseId(candidate string) bool {
 	return true
 }
 
-func InsertCase(caseData *Case) error {
+func InsertCase(ctx context.Context, appDb *sql.DB, caseData *Case) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	otherIds := strings.Join(caseData.OtherIds, otherIdsSeparator)
-	_, err := db.ExecContext(
+	_, err := appDb.ExecContext(
 		ctx,
 		`INSERT INTO cases (id, case_id, case_type, case_year, case_no, alias, other_ids)
 		VALUES (@Id, @CaseId, @CaseType, @CaseYear, @CaseNo, @Alias, @OtherIds)`,
@@ -142,15 +142,15 @@ func InsertCase(caseData *Case) error {
 	return nil
 }
 
-func FindAllCases() ([]*Case, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+func FindAllCases(ctx context.Context, appDb *sql.DB) ([]*Case, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-
-	rows, err := db.QueryContext(
+	rows, err := appDb.QueryContext(
 		ctx,
-		`SELECT (id, case_id, case_type, case_year, case_no, alias, other_ids) FROM cases`,
+		"SELECT id, case_id, case_type, case_year, case_no, alias, other_ids FROM cases",
 	)
 	if err != nil {
+		fmt.Printf("err: %v\n", err)
 		return nil, err
 	}
 
@@ -201,13 +201,10 @@ func FindAllCases() ([]*Case, error) {
 	return cases, nil
 }
 
-func FindCaseById(id string) (*Case, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	row := db.QueryRowContext(
+func FindCaseById(ctx context.Context, appDb *sql.DB, id string) (*Case, error) {
+	row := appDb.QueryRowContext(
 		ctx,
-		`SELECT (id, case_id, case_type, case_year, case_no, alias, other_ids) FROM cases WHERE id = @Id`,
+		`SELECT id, case_id, case_type, case_year, case_no, alias, other_ids FROM cases WHERE id = @Id`,
 		sql.Named("Id", id),
 	)
 
@@ -233,13 +230,10 @@ func FindCaseById(id string) (*Case, error) {
 	return c, nil
 }
 
-func FindCase(caseId, caseType string) (*Case, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	row := db.QueryRowContext(
+func FindCase(ctx context.Context, appDb *sql.DB, caseId, caseType string) (*Case, error) {
+	row := appDb.QueryRowContext(
 		ctx,
-		"SELECT (id, case_id, case_type, case_year, case_no, alias, other_ids) FROM cases WHERE case_id = @CaseId AND case_type = @CaseType",
+		"SELECT id, case_id, case_type, case_year, case_no, alias, other_ids FROM cases WHERE case_id = @CaseId AND case_type = @CaseType",
 		sql.Named("CaseId", caseId),
 		sql.Named("CaseType", caseType),
 	)
@@ -267,10 +261,68 @@ func FindCase(caseId, caseType string) (*Case, error) {
 	return c, nil
 }
 
-func UpdateCaseById(id string, newCaseData *Case) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCount int) (*Case, error) {
+	c := NewEmptyCase()
+	rows, err := appDb.QueryContext(
+		ctx,
+		`SELECT
+			cases.id,
+			cases.case_id,
+			cases.case_type,
+			cases.alias,
+			accords.id,
+			accords.content,
+			date(accords.date) as date,
+			accords.raw_data
+		FROM cases
+		LEFT JOIN accords
+		ON cases.id = accords.for_case
+		WHERE cases.id = $1
+		LIMIT $2`,
+		id,
+		accordCount,
+	)
+	if err != nil {
+		return nil, err
+	}
 
+	for rows.Next() {
+		var (
+			acId      sql.NullString
+			acContent sql.NullString
+			acDate    sql.NullTime
+			acRawData sql.NullString
+		)
+		rows.Scan(
+			&c.Id,
+			&c.CaseId,
+			&c.CaseType,
+			&c.Alias,
+			&acId,
+			&acContent,
+			&acDate,
+			&acRawData,
+		)
+
+		if acId.Valid {
+			c.Accords = append(c.Accords, &Accord{
+				Id:      acId.String,
+				Content: acContent.String,
+				Date:    acDate.Time,
+				rawData: acRawData.String,
+				ForCase: c.Id,
+			})
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
+func UpdateCaseById(ctx context.Context, appDb *sql.DB, id string, newCaseData *Case) error {
 	cols := make([]string, 0)
 	args := make([]interface{}, 0)
 
@@ -306,7 +358,7 @@ func UpdateCaseById(id string, newCaseData *Case) error {
 
 	query := fmt.Sprintf("UPDATE cases SET %s WHERE id = @Id", strings.Join(cols, ", "))
 
-	_, err := db.ExecContext(ctx, query, args...)
+	_, err := appDb.ExecContext(ctx, query, args...)
 	if err != nil {
 		return err
 	}
@@ -314,11 +366,8 @@ func UpdateCaseById(id string, newCaseData *Case) error {
 	return nil
 }
 
-func DeleteCaseById(id string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	_, err := db.ExecContext(ctx, "DELETE FROM cases WHERE id = $1", id)
+func DeleteCaseById(ctx context.Context, appDb *sql.DB, id string) error {
+	_, err := appDb.ExecContext(ctx, "DELETE FROM cases WHERE id = $1", id)
 	if err != nil {
 		return err
 	}

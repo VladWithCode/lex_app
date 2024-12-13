@@ -23,26 +23,34 @@ func (ctrl *CaseController) Startup(ctx context.Context, db *sql.DB) {
 }
 
 func (ctrl *CaseController) FindAllCases() ([]*db.Case, error) {
-	return db.FindAllCases()
+	return db.FindAllCases(ctrl.ctx, ctrl.appDb.Db)
 }
 
 func (ctrl *CaseController) FindCaseById(id string) (*db.Case, error) {
-	return db.FindCaseById(id)
+	return db.FindCaseById(ctrl.ctx, ctrl.appDb.Db, id)
 }
 
 func (ctrl *CaseController) FindCase(caseId, caseType string) (*db.Case, error) {
-	return db.FindCase(caseId, caseType)
+	return db.FindCase(ctrl.ctx, ctrl.appDb.Db, caseId, caseType)
 }
 
-func (ctrl *CaseController) CreateCase(caseId, caseType string) error {
+func (ctrl *CaseController) FindCaseWithAccords(id string, accordCount int) (*db.Case, error) {
+	return db.FindCaseWithAccords(ctrl.ctx, ctrl.appDb.Db, id, accordCount)
+}
+
+func (ctrl *CaseController) CreateCase(caseId, caseType string) (*db.Case, error) {
 	newCase, err := db.NewCase(caseId, caseType)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return db.InsertCase(newCase)
+	if err := db.InsertCase(ctrl.ctx, ctrl.appDb.Db, newCase); err != nil {
+		return nil, err
+	}
+
+	return newCase, nil
 }
 
 func (ctrl *CaseController) UpdateCase(id string, caseData *db.Case) error {
-	return db.UpdateCaseById(id, caseData)
+	return db.UpdateCaseById(ctrl.ctx, ctrl.appDb.Db, id, caseData)
 }
