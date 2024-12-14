@@ -14,7 +14,7 @@ import (
 const DGO_URLF = "http://tsjdgo.gob.mx/Recursos/images/flash/ListasAcuerdos/%v/%v.pdf"
 const LARGE_DATA_SIZE = 60_000
 
-func DgoFetch(date time.Time, caseType string) (data *[]byte, err error) {
+func DgoFetch(date time.Time, caseType internal.CaseType) (data *[]byte, err error) {
 	data, err = dgoFetchResource(date, caseType)
 
 	if err != nil {
@@ -30,7 +30,7 @@ func DgoFetch(date time.Time, caseType string) (data *[]byte, err error) {
 	return
 }
 
-func dgoFetchResource(date time.Time, caseType string) (data *[]byte, err error) {
+func dgoFetchResource(date time.Time, caseType internal.CaseType) (data *[]byte, err error) {
 	formattedDate := date.Format("212006")
 	resourceUrl := fmt.Sprintf(DGO_URLF, formattedDate, caseType)
 
