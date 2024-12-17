@@ -29,6 +29,7 @@ type AccUpdterOpts struct {
 } */
 
 type UpdatedAccord struct {
+	CaseKey  string
 	CaseType internal.CaseType
 	CaseId   string
 	Content  string

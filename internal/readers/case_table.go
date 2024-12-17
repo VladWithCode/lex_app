@@ -6,7 +6,10 @@ import (
 	"strings"
 )
 
+const CaseKeySeparator = ":"
+
 type CaseData struct {
+	CaseKey  string
 	CaseType string
 	CaseId   string
 	Nature   string
@@ -18,6 +21,7 @@ func NewCaseData() *CaseData {
 }
 
 func (cd *CaseData) Clear() {
+	cd.CaseKey = ""
 	cd.CaseType = ""
 	cd.CaseId = ""
 	cd.Nature = ""
@@ -26,6 +30,7 @@ func (cd *CaseData) Clear() {
 
 func (cd *CaseData) Clone() CaseData {
 	return CaseData{
+		CaseKey:  cd.CaseKey,
 		CaseType: cd.CaseType,
 		CaseId:   cd.CaseId,
 		Nature:   cd.Nature,
@@ -34,6 +39,7 @@ func (cd *CaseData) Clone() CaseData {
 }
 
 type CaseRow struct {
+	CaseKey  string
 	CaseType string
 	CaseId   string
 	IdNo     string
@@ -88,7 +94,13 @@ func NewCaseRow(caseData *CaseData) (*CaseRow, error) {
 		caseRow.CaseId = caseRow.AllIds[0]
 	}
 
+	caseRow.CaseKey = caseRow.GetCaseKey()
+
 	return &caseRow, nil
+}
+
+func (cr *CaseRow) GetCaseKey() string {
+	return strings.Join([]string{cr.CaseId, cr.CaseType}, CaseKeySeparator)
 }
 
 type CaseTable struct {
