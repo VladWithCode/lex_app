@@ -16,7 +16,7 @@ import (
 const DGO_URLF = "http://tsjdgo.gob.mx/Recursos/images/flash/ListasAcuerdos/%v/%v.pdf"
 const LARGE_DATA_SIZE = 60_000
 
-var DocNotFoundErr = errors.New("No se encontró documento para la fecha solicitada")
+var ErrDocNotFound = errors.New("No se encontró documento para la fecha solicitada")
 
 func DgoFetch(date time.Time, caseType internal.CaseType) (data *[]byte, err error) {
 	data, err = dgoFetchResource(date, caseType)
@@ -46,7 +46,7 @@ func dgoFetchResource(date time.Time, caseType internal.CaseType) (data *[]byte,
 	defer response.Body.Close()
 
 	if response.StatusCode < 200 || response.StatusCode >= 400 {
-		return nil, DocNotFoundErr
+		return nil, ErrDocNotFound
 	}
 
 	data = new([]byte)
