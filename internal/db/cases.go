@@ -374,12 +374,43 @@ func FindCaseById(ctx context.Context, appDb *sql.DB, id string) (*LexCase, erro
 	return c, nil
 }
 
-func FindCase(ctx context.Context, appDb *sql.DB, caseId, caseType string) (*LexCase, error) {
+func FindCases(ctx context.Context, appDb *sql.DB, caseKeys []string) ([]*LexCase, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	rows, err := appDb.QueryContext(
+		ctx,
+		"SELECT id, case_id, case_type, (case_id || ':' || case_type) as case_key FROM cases WHERE case_key IN :CaseKeys",
+		sql.Named("CaseKeys", caseKeys),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	cases := []*LexCase{}
+	for rows.Next() {
+		c := NewEmptyCase()
+		rows.Scan(
+			&c.Id,
+			&c.CaseId,
+			&c.CaseType,
+		)
+
+		cases = append(cases, c)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return cases, nil
+}
+
+func FindCase(ctx context.Context, appDb *sql.DB, caseKey string) (*LexCase, error) {
 	row := appDb.QueryRowContext(
 		ctx,
-		"SELECT id, case_id, case_type, case_year, case_no, alias, other_ids FROM cases WHERE case_id = :CaseId AND case_type = :CaseType",
-		sql.Named("CaseId", caseId),
-		sql.Named("CaseType", caseType),
+		"SELECT id, case_id, case_type, case_year, case_no, alias, other_ids, (case_id || ':' || case_type) as case_key FROM cases WHERE case_key = :CaseKey",
+		sql.Named("CaseKey", caseKey),
 	)
 
 	c := NewEmptyCase()
