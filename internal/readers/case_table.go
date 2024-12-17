@@ -14,12 +14,7 @@ type CaseData struct {
 }
 
 func NewCaseData() *CaseData {
-	return &CaseData{
-		CaseType: "",
-		CaseId:   "",
-		Nature:   "",
-		Accord:   "",
-	}
+	return &CaseData{}
 }
 
 func (cd *CaseData) Clear() {
