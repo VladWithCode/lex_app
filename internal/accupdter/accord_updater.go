@@ -3,15 +3,24 @@ package accupdter
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/vladwithcode/lex_app/internal"
+	"github.com/vladwithcode/lex_app/internal/db"
 	"github.com/vladwithcode/lex_app/internal/fetchers"
 	"github.com/vladwithcode/lex_app/internal/readers"
 )
 
 type AccUpdter interface {
 	Update()
+type CaseStore interface {
+	FindAll(ids []string) ([]*db.LexCase, error)
+	FindAllKeys(keys []string) ([]*db.LexCase, error)
+	FindById(id string) (*db.LexCase, error)
+	FindByKey(key string) (*db.LexCase, error)
+
+	Save(updates []*UpdatedAccord) error
 }
 
 type AccUpdterOpts struct {
