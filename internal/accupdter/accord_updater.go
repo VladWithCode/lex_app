@@ -1,6 +1,8 @@
 package accupdter
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -157,6 +159,27 @@ func (updter *basicAccUpdter) Update(keys []string, ids *[]string) (notFoundKeys
 // BasicAccUpdter should not be used in production
 func (updter *basicAccUpdter) getStore() *CaseStore {
 	return nil
+}
+
+type DefaultCaseStore struct {
+	db *sql.DB
+}
+
+func NewDefaultCaseStore(db *sql.DB) *DefaultCaseStore {
+	return &DefaultCaseStore{db}
+}
+
+func (st *DefaultCaseStore) FindAll(ids []string) ([]*db.LexCase, error) {
+	return db.FindCasesById(context.TODO(), st.db, ids)
+}
+func (st *DefaultCaseStore) FindAllKeys(keys []string) ([]*db.LexCase, error) {
+	return db.FindCases(context.TODO(), st.db, keys)
+}
+func (st *DefaultCaseStore) FindById(id string) (*db.LexCase, error) {
+	return db.FindCaseById(context.TODO(), st.db, id)
+}
+func (st *DefaultCaseStore) FindByKey(key string) (*db.LexCase, error) {
+	return db.FindCase(context.TODO(), st.db, key)
 }
 
 // Appends CaseRows and index entries from the mergingTable into the targetTable
