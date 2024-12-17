@@ -345,6 +345,34 @@ FROM cases LEFT JOIN (
 	return cases, nil
 }
 
+func FindCasesById(ctx context.Context, appDb *sql.DB, ids []string) ([]*LexCase, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	rows, err := appDb.QueryContext(ctx, "SELECT id, case_id, case_type FROM cases WHERE id IN :Ids", sql.Named("Ids", ids))
+	if err != nil {
+		return nil, err
+	}
+
+	cases := []*LexCase{}
+	for rows.Next() {
+		c := NewEmptyCase()
+		rows.Scan(
+			&c.Id,
+			&c.CaseId,
+			&c.CaseType,
+		)
+
+		cases = append(cases, c)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return cases, nil
+}
+
 func FindCaseById(ctx context.Context, appDb *sql.DB, id string) (*LexCase, error) {
 	row := appDb.QueryRowContext(
 		ctx,
