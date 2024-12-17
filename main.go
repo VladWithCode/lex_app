@@ -28,7 +28,7 @@ func main() {
 
 	// Create an instance of the app structure
 	app := NewApp()
-	caseCtrl := controllers.NewCaseControler()
+	caseCtl := controllers.NewCaseControler()
 
 	// Create application with options
 	err = wails.Run(&options.App{
@@ -43,11 +43,11 @@ func main() {
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
 		OnStartup: func(ctx context.Context) {
 			app.startup(ctx, db)
-			caseCtrl.Startup(ctx, db)
+			caseCtl.Startup(ctx, db)
 		},
 		Bind: []interface{}{
 			app,
-			caseCtrl,
+			caseCtl,
 		},
 		EnumBind: []interface{}{
 			internal.AllRegions,

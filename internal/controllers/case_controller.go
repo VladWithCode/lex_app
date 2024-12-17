@@ -17,48 +17,48 @@ func NewCaseControler() *CaseController {
 	return &CaseController{}
 }
 
-func (ctrl *CaseController) Startup(ctx context.Context, db *sql.DB) {
-	ctrl.ctx = ctx
-	ctrl.appDb = internal.NewAppDb(db)
+func (ctl *CaseController) Startup(ctx context.Context, db *sql.DB) {
+	ctl.ctx = ctx
+	ctl.appDb = internal.NewAppDb(db)
 }
 
-func (ctrl *CaseController) FindAllCases() ([]*db.Case, error) {
-	return db.FindAllCases(ctrl.ctx, ctrl.appDb.Db)
+func (ctl *CaseController) FindAllCases() ([]*db.Case, error) {
+	return db.FindAllCases(ctl.ctx, ctl.appDb.Db)
 }
 
-func (ctrl *CaseController) FindCases(opts *db.FindCaseOptions) ([]*db.Case, error) {
+func (ctl *CaseController) FindCases(opts *db.FindCaseOptions) ([]*db.Case, error) {
 	if opts != nil {
-		return db.FindFilteredCases(ctrl.ctx, ctrl.appDb.Db, opts)
+		return db.FindFilteredCases(ctl.ctx, ctl.appDb.Db, opts)
 	}
 
-	return db.FindAllCases(ctrl.ctx, ctrl.appDb.Db)
+	return db.FindAllCases(ctl.ctx, ctl.appDb.Db)
 }
 
-func (ctrl *CaseController) FindCaseById(id string) (*db.Case, error) {
-	return db.FindCaseById(ctrl.ctx, ctrl.appDb.Db, id)
+func (ctl *CaseController) FindCaseById(id string) (*db.Case, error) {
+	return db.FindCaseById(ctl.ctx, ctl.appDb.Db, id)
 }
 
-func (ctrl *CaseController) FindCase(caseId, caseType string) (*db.Case, error) {
-	return db.FindCase(ctrl.ctx, ctrl.appDb.Db, caseId, caseType)
+func (ctl *CaseController) FindCase(caseId, caseType string) (*db.Case, error) {
+	return db.FindCase(ctl.ctx, ctl.appDb.Db, caseId, caseType)
 }
 
-func (ctrl *CaseController) FindCaseWithAccords(id string, accordCount int) (*db.Case, error) {
-	return db.FindCaseWithAccords(ctrl.ctx, ctrl.appDb.Db, id, accordCount)
+func (ctl *CaseController) FindCaseWithAccords(id string, accordCount int) (*db.Case, error) {
+	return db.FindCaseWithAccords(ctl.ctx, ctl.appDb.Db, id, accordCount)
 }
 
-func (ctrl *CaseController) CreateCase(caseId, caseType string) (*db.Case, error) {
+func (ctl *CaseController) CreateCase(caseId, caseType string) (*db.Case, error) {
 	newCase, err := db.NewCase(caseId, caseType)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := db.InsertCase(ctrl.ctx, ctrl.appDb.Db, newCase); err != nil {
+	if err := db.InsertCase(ctl.ctx, ctl.appDb.Db, newCase); err != nil {
 		return nil, err
 	}
 
 	return newCase, nil
 }
 
-func (ctrl *CaseController) UpdateCase(id string, caseData *db.Case) error {
-	return db.UpdateCaseById(ctrl.ctx, ctrl.appDb.Db, id, caseData)
+func (ctl *CaseController) UpdateCase(id string, caseData *db.Case) error {
+	return db.UpdateCaseById(ctl.ctx, ctl.appDb.Db, id, caseData)
 }
