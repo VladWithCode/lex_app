@@ -22,11 +22,11 @@ func (ctl *CaseController) Startup(ctx context.Context, db *sql.DB) {
 	ctl.appDb = internal.NewAppDb(db)
 }
 
-func (ctl *CaseController) FindAllCases() ([]*db.Case, error) {
+func (ctl *CaseController) FindAllCases() ([]*db.LexCase, error) {
 	return db.FindAllCases(ctl.ctx, ctl.appDb.Db)
 }
 
-func (ctl *CaseController) FindCases(opts *db.FindCaseOptions) ([]*db.Case, error) {
+func (ctl *CaseController) FindCases(opts *db.FindCaseOptions) ([]*db.LexCase, error) {
 	if opts != nil {
 		return db.FindFilteredCases(ctl.ctx, ctl.appDb.Db, opts)
 	}
@@ -34,19 +34,19 @@ func (ctl *CaseController) FindCases(opts *db.FindCaseOptions) ([]*db.Case, erro
 	return db.FindAllCases(ctl.ctx, ctl.appDb.Db)
 }
 
-func (ctl *CaseController) FindCaseById(id string) (*db.Case, error) {
+func (ctl *CaseController) FindCaseById(id string) (*db.LexCase, error) {
 	return db.FindCaseById(ctl.ctx, ctl.appDb.Db, id)
 }
 
-func (ctl *CaseController) FindCase(caseId, caseType string) (*db.Case, error) {
+func (ctl *CaseController) FindCase(caseId, caseType string) (*db.LexCase, error) {
 	return db.FindCase(ctl.ctx, ctl.appDb.Db, caseId, caseType)
 }
 
-func (ctl *CaseController) FindCaseWithAccords(id string, accordCount int) (*db.Case, error) {
+func (ctl *CaseController) FindCaseWithAccords(id string, accordCount int) (*db.LexCase, error) {
 	return db.FindCaseWithAccords(ctl.ctx, ctl.appDb.Db, id, accordCount)
 }
 
-func (ctl *CaseController) CreateCase(caseId, caseType string) (*db.Case, error) {
+func (ctl *CaseController) CreateCase(caseId, caseType string) (*db.LexCase, error) {
 	newCase, err := db.NewCase(caseId, caseType)
 	if err != nil {
 		return nil, err
@@ -59,6 +59,6 @@ func (ctl *CaseController) CreateCase(caseId, caseType string) (*db.Case, error)
 	return newCase, nil
 }
 
-func (ctl *CaseController) UpdateCase(id string, caseData *db.Case) error {
+func (ctl *CaseController) UpdateCase(id string, caseData *db.LexCase) error {
 	return db.UpdateCaseById(ctl.ctx, ctl.appDb.Db, id, caseData)
 }

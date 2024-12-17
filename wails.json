@@ -12,7 +12,6 @@
   },
   "bindings": {
       "ts_generation": {
-          "prefix": "lex"
       }
   }
 }

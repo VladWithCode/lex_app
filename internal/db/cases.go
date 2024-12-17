@@ -22,7 +22,7 @@ var (
 	ErrorInvalidCaseId = errors.New("caseId is not in a valid format. Should be formatted as '123/2024[-I]'")
 )
 
-type Case struct {
+type LexCase struct {
 	Id             string    `json:"id" db:"id"`
 	CaseId         string    `json:"caseId" db:"case_id"`
 	CaseType       string    `json:"caseType" db:"case_type"`
@@ -35,19 +35,19 @@ type Case struct {
 	Accords        []*Accord `json:"accords"`
 }
 
-func NewEmptyCase() *Case {
-	return &Case{
+func NewEmptyCase() *LexCase {
+	return &LexCase{
 		OtherIds: []string{},
 		Accords:  []*Accord{},
 	}
 }
 
-func NewCase(caseId, caseType string) (*Case, error) {
+func NewCase(caseId, caseType string) (*LexCase, error) {
 	if !isValidCaseId(caseId) {
 		return nil, fmt.Errorf("%s is not a valid caseId value:\n\t%w", caseId, ErrorInvalidCaseId)
 	}
 
-	c := &Case{
+	c := &LexCase{
 		CaseId:   caseId,
 		CaseType: caseType,
 		OtherIds: []string{},
@@ -73,7 +73,7 @@ func NewCase(caseId, caseType string) (*Case, error) {
 	return c, nil
 }
 
-func (c *Case) SetIdsFromStr(str string) error {
+func (c *LexCase) SetIdsFromStr(str string) error {
 	ids := strings.Split(str, otherIdsSeparator)
 	if len(ids) == 0 {
 		return errors.New("String generated no id candidates")
@@ -91,7 +91,7 @@ func (c *Case) SetIdsFromStr(str string) error {
 	return nil
 }
 
-func (c *Case) AddOtherId(candidate string) error {
+func (c *LexCase) AddOtherId(candidate string) error {
 	if !isValidCaseId(candidate) {
 		return fmt.Errorf("%s is not a valid caseId value:\n\t%w", candidate, ErrorInvalidCaseId)
 	}
@@ -139,7 +139,7 @@ var DefaultFindCaseOptions = FindCaseOptions{
 	MaxAccords:     1,
 }
 
-func InsertCase(ctx context.Context, appDb *sql.DB, caseData *Case) error {
+func InsertCase(ctx context.Context, appDb *sql.DB, caseData *LexCase) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -164,7 +164,7 @@ func InsertCase(ctx context.Context, appDb *sql.DB, caseData *Case) error {
 	return nil
 }
 
-func FindAllCases(ctx context.Context, appDb *sql.DB) ([]*Case, error) {
+func FindAllCases(ctx context.Context, appDb *sql.DB) ([]*LexCase, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	rows, err := appDb.QueryContext(
@@ -175,7 +175,7 @@ func FindAllCases(ctx context.Context, appDb *sql.DB) ([]*Case, error) {
 		return nil, err
 	}
 
-	cases := []*Case{}
+	cases := []*LexCase{}
 	nOtherIds := sql.NullString{}
 	nCaseYear := sql.NullString{}
 	nCaseNo := sql.NullString{}
@@ -186,7 +186,7 @@ func FindAllCases(ctx context.Context, appDb *sql.DB) ([]*Case, error) {
 		nCaseYear.Valid = false
 		nCaseNo.Valid = false
 		nAlias.Valid = false
-		c := &Case{}
+		c := &LexCase{}
 
 		rows.Scan(
 			&c.Id,
@@ -222,7 +222,7 @@ func FindAllCases(ctx context.Context, appDb *sql.DB) ([]*Case, error) {
 	return cases, nil
 }
 
-func FindFilteredCases(ctx context.Context, appDb *sql.DB, opts *FindCaseOptions) ([]*Case, error) {
+func FindFilteredCases(ctx context.Context, appDb *sql.DB, opts *FindCaseOptions) ([]*LexCase, error) {
 	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
 	defer cancel()
 	baseQuery := ""
@@ -285,7 +285,7 @@ FROM cases LEFT JOIN (
 		return nil, err
 	}
 
-	cases := []*Case{}
+	cases := []*LexCase{}
 	caseMap := map[string]int{}
 	for rows.Next() {
 		var (
@@ -345,14 +345,14 @@ FROM cases LEFT JOIN (
 	return cases, nil
 }
 
-func FindCaseById(ctx context.Context, appDb *sql.DB, id string) (*Case, error) {
+func FindCaseById(ctx context.Context, appDb *sql.DB, id string) (*LexCase, error) {
 	row := appDb.QueryRowContext(
 		ctx,
 		`SELECT id, case_id, case_type, case_year, case_no, alias, other_ids FROM cases WHERE id = :Id`,
 		sql.Named("Id", id),
 	)
 
-	c := &Case{}
+	c := &LexCase{}
 	otherIds := new(string)
 	err := row.Scan(
 		&c.Id,
@@ -374,7 +374,7 @@ func FindCaseById(ctx context.Context, appDb *sql.DB, id string) (*Case, error) 
 	return c, nil
 }
 
-func FindCase(ctx context.Context, appDb *sql.DB, caseId, caseType string) (*Case, error) {
+func FindCase(ctx context.Context, appDb *sql.DB, caseId, caseType string) (*LexCase, error) {
 	row := appDb.QueryRowContext(
 		ctx,
 		"SELECT id, case_id, case_type, case_year, case_no, alias, other_ids FROM cases WHERE case_id = :CaseId AND case_type = :CaseType",
@@ -405,7 +405,7 @@ func FindCase(ctx context.Context, appDb *sql.DB, caseId, caseType string) (*Cas
 	return c, nil
 }
 
-func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCount int) (*Case, error) {
+func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCount int) (*LexCase, error) {
 	c := NewEmptyCase()
 	rows, err := appDb.QueryContext(
 		ctx,
@@ -466,7 +466,7 @@ func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCo
 	return c, nil
 }
 
-func UpdateCaseById(ctx context.Context, appDb *sql.DB, id string, newCaseData *Case) error {
+func UpdateCaseById(ctx context.Context, appDb *sql.DB, id string, newCaseData *LexCase) error {
 	cols := make([]string, 0)
 	args := make([]interface{}, 0)
 
