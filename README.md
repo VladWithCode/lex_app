@@ -1,19 +1,13 @@
-# README
+# Lex App
 
-## About
+Built to help with tracking and ease of search for progress in legal procedures.
 
-This is the official Wails React-TS template.
+Uses Go and Wails to power the core of the app and React to enhance the UI to deliver an amazing, simple
+and efficient workflow when working on multiple cases that require the user to be up to date with the
+latest updates in their customers procedures.
 
-You can configure the project by editing `wails.json`. More information about the project settings can be found
-here: https://wails.io/docs/reference/project-config
+### Installation note:
 
-## Live Development
-
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
-
-## Building
-
-To build a redistributable, production mode package, use `wails build`.
+This app requires, as of version 'current version', poppler's pdftotext utility to work.
+I'm working on removing all the 3rd party dependencies as possible, but for now it remains a requirement
+for installation.
