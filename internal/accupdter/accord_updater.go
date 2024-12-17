@@ -38,8 +38,8 @@ type UpdatedAccord struct {
 }
 
 type BasicAccUpdter struct {
-	Fetch fetchers.Fetcher
-	Read  readers.Reader
+	Fetch fetchers.Fetcher `json:"-"`
+	Read  readers.Reader   `json:"-"`
 	opts  *AccUpdterOpts
 }
 
