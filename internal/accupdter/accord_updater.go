@@ -162,24 +162,25 @@ func (updter *basicAccUpdter) getStore() *CaseStore {
 }
 
 type DefaultCaseStore struct {
-	db *sql.DB
+	ctx context.Context
+	db  *sql.DB
 }
 
-func NewDefaultCaseStore(db *sql.DB) *DefaultCaseStore {
-	return &DefaultCaseStore{db}
+func NewDefaultCaseStore(ctx context.Context, db *sql.DB) *DefaultCaseStore {
+	return &DefaultCaseStore{ctx, db}
 }
 
 func (st *DefaultCaseStore) FindAll(ids []string) ([]*db.LexCase, error) {
-	return db.FindCasesById(context.TODO(), st.db, ids)
+	return db.FindCasesById(st.ctx, st.db, ids)
 }
 func (st *DefaultCaseStore) FindAllKeys(keys []string) ([]*db.LexCase, error) {
-	return db.FindCases(context.TODO(), st.db, keys)
+	return db.FindCases(st.ctx, st.db, keys)
 }
 func (st *DefaultCaseStore) FindById(id string) (*db.LexCase, error) {
-	return db.FindCaseById(context.TODO(), st.db, id)
+	return db.FindCaseById(st.ctx, st.db, id)
 }
 func (st *DefaultCaseStore) FindByKey(key string) (*db.LexCase, error) {
-	return db.FindCase(context.TODO(), st.db, key)
+	return db.FindCase(st.ctx, st.db, key)
 }
 
 // Appends CaseRows and index entries from the mergingTable into the targetTable
