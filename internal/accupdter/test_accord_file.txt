@@ -1,0 +1,19 @@
+    ignore this line
+    also ignore this line
+       No.     CaseId        Nature               Content
+       1       00084/2003    Some sample nature   Some sample accord content
+       2       00264/2018    Second Nature        Valid content for an accord
+                             in 2 lines           with two lines of height?
+       3       00013/1998    Third Nature         This content is longer in width that previous contents, but should be stored correctly in the content col
+       4       45/3000                            This accord has a nature that doesn't start
+                             Forth Nature non     on the first line
+                             standard too
+
+          PAGINA 1/2
+
+       5       60/1234       Fifth with multi ID  This accord has multiple caseIds
+               60/1234-I
+       6       1024/2048     Sixth with both      This accord has a valid and an invalid caseId
+               eee/wrong     valid/invalid id
+       7       invalid/id    Seventh with only    This accord only has an invalid id
+                             invalid id
