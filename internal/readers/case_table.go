@@ -54,6 +54,7 @@ func NewCaseRow(caseData *CaseData) (*CaseRow, error) {
 		CaseType: caseData.CaseType,
 		Nature:   caseData.Nature,
 		Accord:   caseData.Accord,
+		AllIds:   []string{},
 	}
 
 	ids := strings.Split(
