@@ -12,8 +12,6 @@ import (
 	"github.com/vladwithcode/lex_app/internal/readers"
 )
 
-type AccUpdter interface {
-	Update()
 type CaseStore interface {
 	FindAll(ids []string) ([]*db.LexCase, error)
 	FindAllKeys(keys []string) ([]*db.LexCase, error)
@@ -23,12 +21,11 @@ type CaseStore interface {
 	Save(updates []*UpdatedAccord) error
 }
 
-type AccUpdterOpts struct {
-	CaseType        internal.CaseType
-	CaseIds         []string
-	Region          internal.Region
-	MaxSearchBack   int
-	SearchStartDate time.Time
+type AccUpdter interface {
+	FindUpdates(keys []string, ids *[]string) (updates []*UpdatedAccord, notFoundKeys []string, err error)
+	Update(keys []string, ids *[]string) (notFoundKeys []string, err error)
+
+	getStore() *CaseStore
 }
 
 // TODO: Implement update queue
@@ -47,26 +44,43 @@ type UpdatedAccord struct {
 	OthIds   []string
 }
 
-type BasicAccUpdter struct {
+type AccUpdterOpts struct {
+	Store           *CaseStore
+	CaseType        internal.CaseType
+	Region          internal.Region
+	MaxSearchBack   int
+	SearchStartDate time.Time
+	FetchFn         func(time.Time, internal.CaseType) (*[]byte, error)
+	ReadFn          func(*[]byte) (*readers.CaseTable, error)
+}
+
+// Basic implementation of AccUpdater
+//
+// Meant to be a demostration and not to be used
+type basicAccUpdter struct {
 	Fetch fetchers.Fetcher `json:"-"`
 	Read  readers.Reader   `json:"-"`
 	opts  *AccUpdterOpts
 }
 
-func NewBasicUpdter(opts *AccUpdterOpts) *BasicAccUpdter {
-	return &BasicAccUpdter{
-		Fetch: fetchers.NewFetcher(opts.Region),
-		Read:  readers.NewReader(opts.Region),
-		opts:  opts,
-	}
-}
-
 // Only fetches and reads, returning results
-func (updter *BasicAccUpdter) FindUpdates() (updatedAccords []*UpdatedAccord, notFoundIds []string, err error) {
+func (updter *basicAccUpdter) FindUpdates(keys []string, ids *[]string) (updatedAccords []*UpdatedAccord, notFoundIds []string, err error) {
 	searchDate := time.Now()
 	updatedAccords = []*UpdatedAccord{}
-	notFoundIds = make([]string, len(updter.opts.CaseIds))
-	copy(notFoundIds, updter.opts.CaseIds)
+	notFoundIds = make([]string, len(keys))
+	for _, k := range keys {
+		parts := strings.Split(k, readers.CaseKeySeparator)
+		notFoundIds = append(notFoundIds, parts[0])
+	}
+
+	if ids != nil && len(*ids) > 0 {
+		if store := updter.getStore(); store != nil {
+			cases, _ := (*store).FindAll(*ids)
+			for _, c := range cases {
+				notFoundIds = append(notFoundIds, c.CaseId)
+			}
+		}
+	}
 
 	if updter.opts.SearchStartDate != (time.Time{}) {
 		searchDate, _ = time.Parse(
@@ -106,6 +120,7 @@ func (updter *BasicAccUpdter) FindUpdates() (updatedAccords []*UpdatedAccord, no
 		for _, id := range notFoundIds {
 			if caseRow := caseTable.Find(id); caseRow != nil {
 				acc := UpdatedAccord{
+					CaseKey:  caseRow.GetCaseKey(),
 					CaseType: internal.CaseType(caseRow.CaseType),
 					CaseId:   caseRow.CaseId,
 					Content:  caseRow.Accord,
@@ -130,8 +145,18 @@ func (updter *BasicAccUpdter) FindUpdates() (updatedAccords []*UpdatedAccord, no
 	return updatedAccords, notFoundIds, nil
 }
 
-// Doesn't return but updates DB with accords found
-func (updter *BasicAccUpdter) Update() {
+// Not implemented. BasicAccUpdter is meant to be a demostration
+//
+// BasicAccUpdter should not be used in production
+func (updter *basicAccUpdter) Update(keys []string, ids *[]string) (notFoundKeys []string, err error) {
+	return nil, nil
+}
+
+// Not implemented. BasicAccUpdter is meant to be a demostration
+//
+// BasicAccUpdter should not be used in production
+func (updter *basicAccUpdter) getStore() *CaseStore {
+	return nil
 }
 
 // Appends CaseRows and index entries from the mergingTable into the targetTable

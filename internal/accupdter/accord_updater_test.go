@@ -50,7 +50,7 @@ func TestFindUpdates(t *testing.T) {
 	}
 	expectNotFound := []string{"12/12"}
 
-	updtr := BasicAccUpdter{
+	updtr := basicAccUpdter{
 		Fetch: mockFetch,
 		Read:  readers.NewReader(internal.RegionDefault),
 		opts: &AccUpdterOpts{
@@ -118,8 +118,8 @@ func TestFindUpdates(t *testing.T) {
 	}
 }
 
-func NewTestUpdater() *BasicAccUpdter {
-	return &BasicAccUpdter{
+func NewTestUpdater() *basicAccUpdter {
+	return &basicAccUpdter{
 		Fetch: mockFetch,
 		Read:  readers.NewReader(internal.RegionDefault),
 		opts: &AccUpdterOpts{
