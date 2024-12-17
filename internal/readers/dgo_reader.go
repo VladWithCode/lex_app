@@ -155,15 +155,14 @@ func dgoNextLineEndsParsing(rows [][]byte, currRow int) bool {
 	// No more lines | Empty lines | New Case Row lines
 	// represent the end of a single CaseRow parsing
 	if currRow+1 >= len(rows) || len(rows[currRow+1]) < dgoMinRowLen {
-		return false
+		return true
 	}
 
 	var (
-		nextRow    = rows[currRow+1][dgoAvgLeadingWhitespace:]
-		trimmedRow = string(nextRow)
+		nextRow = rows[currRow+1][dgoAvgLeadingWhitespace:]
 	)
 
-	return len(trimmedRow) == 0 || dgoLineStartsCase(nextRow) || strings.Contains(trimmedRow, "PAGINA")
+	return len(nextRow) == 0 || dgoLineStartsCase(nextRow) || bytes.Contains(nextRow, []byte("PAGINA"))
 }
 
 // Checks if the current character counts as a column separator
