@@ -5,6 +5,7 @@ import (
 
 	"github.com/vladwithcode/lex_app/internal"
 	"github.com/vladwithcode/lex_app/internal/db"
+	"github.com/vladwithcode/lex_app/internal/readers"
 	"golang.org/x/net/context"
 )
 
@@ -39,7 +40,8 @@ func (ctl *CaseController) FindCaseById(id string) (*db.LexCase, error) {
 }
 
 func (ctl *CaseController) FindCase(caseId, caseType string) (*db.LexCase, error) {
-	return db.FindCase(ctl.ctx, ctl.appDb.Db, caseId, caseType)
+	caseKey := caseId + readers.CaseKeySeparator + caseType
+	return db.FindCase(ctl.ctx, ctl.appDb.Db, caseKey)
 }
 
 func (ctl *CaseController) FindCaseWithAccords(id string, accordCount int) (*db.LexCase, error) {
