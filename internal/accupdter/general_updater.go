@@ -61,14 +61,6 @@ func NewGeneralUpdater(conf *GenUpdterConf) *GeneralUpdater {
 	return &GeneralUpdater{conf}
 }
 
-type asyncUpdate struct {
-	startDate time.Time
-	daysBack  int
-
-	updates chan<- []*UpdatedAccord
-	errs    chan<- error
-}
-
 func (updter *GeneralUpdater) Update(caseKeys []string, startSearchDate time.Time, maxSearchBack int) (notFoundKeys []string, err error) {
 	if len(caseKeys) == 0 {
 		return nil, ErrNoCaseKeys
@@ -91,14 +83,14 @@ func (updter *GeneralUpdater) Update(caseKeys []string, startSearchDate time.Tim
 	complete := make(chan error)
 
 	for cType, cIds := range caseTypesMap {
-		go updter.getUpdates(
-			updates,
-			complete,
-			cType,
-			cIds,
-			startSearchDate,
-			maxSearchBack,
-		)
+		go updter.getUpdates(&getUpdatesParams{
+			updates:   updates,
+			complete:  complete,
+			caseType:  cType,
+			caseIds:   cIds,
+			startDate: startSearchDate,
+			daysBack:  maxSearchBack,
+		})
 	}
 
 	for pendingSearch > 0 {
@@ -147,33 +139,37 @@ func (updter *GeneralUpdater) Update(caseKeys []string, startSearchDate time.Tim
 	return
 }
 
-func (updter *GeneralUpdater) getUpdates(
-	updates chan<- []*UpdatedAccord,
-	complete chan<- error,
-	caseType internal.CaseType,
-	caseIds []string,
-	startDate time.Time,
-	daysBack int,
-) {
-	pendingIds := make([]string, len(caseIds))
-	copy(pendingIds, caseIds)
-	y, m, d := startDate.Date()
+type getUpdatesParams struct {
+	updates  chan<- []*UpdatedAccord
+	complete chan<- error
+
+	caseType  internal.CaseType
+	caseIds   []string
+	startDate time.Time
+	daysBack  int
+}
+
+func (updter *GeneralUpdater) getUpdates(updateParams *getUpdatesParams) {
+	pendingIds := make([]string, len(updateParams.caseIds))
+	copy(pendingIds, updateParams.caseIds)
+	y, m, d := updateParams.startDate.Date()
 	searchDate := time.Date(y, m, d, 0, 0, 0, 0, time.Local)
 	sent := 0
 
-	for i := 0; i <= daysBack; i++ {
+	for i := 0; i <= updateParams.daysBack; i++ {
 		updatedAccords := []*UpdatedAccord{}
-		fmt.Printf("Fetching with date %q for caseType %q [attempt %d]\n", searchDate, caseType, i+1)
-		data, err := updter.conf.FetchFn(searchDate, caseType)
+		fmt.Printf("Fetching with date %q for caseType %q [attempt %d]\n", searchDate, updateParams.caseType, i+1)
+
+		data, err := updter.conf.FetchFn(searchDate, updateParams.caseType)
 		if err != nil {
-			if i == daysBack && sent == 0 {
+			if i == updateParams.daysBack && sent == 0 {
 				fatalErr := errors.Join(
-					fmt.Errorf("FetchFail: fetch for CaseType %q errored on date %s", caseType, searchDate),
+					fmt.Errorf("FetchFail: fetch for CaseType %q errored on date %s", updateParams.caseType, searchDate),
 					ErrFatalSearch,
 					err,
 				)
 
-				complete <- fatalErr
+				updateParams.complete <- fatalErr
 				return
 			}
 
@@ -183,13 +179,13 @@ func (updter *GeneralUpdater) getUpdates(
 
 		caseTable, err := updter.conf.ReadFn(data)
 		if err != nil {
-			if i == daysBack && sent == 0 {
+			if i == updateParams.daysBack && sent == 0 {
 				fatalErr := errors.Join(
-					fmt.Errorf("ReadFail: read for CaseType %q errored on date %s", caseType, searchDate),
+					fmt.Errorf("ReadFail: read for CaseType %q errored on date %s", updateParams.caseType, searchDate),
 					ErrFatalSearch,
 					err,
 				)
-				complete <- fatalErr
+				updateParams.complete <- fatalErr
 				return
 			}
 
@@ -204,7 +200,7 @@ func (updter *GeneralUpdater) getUpdates(
 				nextPendingIds = append(nextPendingIds, cId)
 				continue
 			}
-			caseRow.CaseType = string(caseType)
+			caseRow.CaseType = string(updateParams.caseType)
 			acc := UpdatedAccord{
 				CaseKey:  caseRow.GetCaseKey(),
 				CaseType: internal.CaseType(caseRow.CaseType),
@@ -218,7 +214,7 @@ func (updter *GeneralUpdater) getUpdates(
 			updatedAccords = append(updatedAccords, &acc)
 		}
 
-		updates <- updatedAccords
+		updateParams.updates <- updatedAccords
 		searchDate = searchDate.Add(internal.DayBack)
 		sent += len(updatedAccords)
 
@@ -227,7 +223,7 @@ func (updter *GeneralUpdater) getUpdates(
 		}
 	}
 
-	complete <- nil
+	updateParams.complete <- nil
 }
 
 func (updter *GeneralUpdater) getStore() CaseStore {
