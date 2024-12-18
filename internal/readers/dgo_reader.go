@@ -25,10 +25,12 @@ const dgoEstimateIndexColLen = 5
 // considered rows
 var dgoMinRowLen = dgoAvgLeadingWhitespace + dgoEstimateIndexColLen
 
+var ErrNoRows = errors.New("Data produced no rows")
+
 func dgoReader(data *[]byte) (caseTable *CaseTable, err error) {
 	rows := bytes.Split(*data, []byte{'\n'})
 	if len(rows) == 0 {
-		return nil, errors.New("Data produced no rows")
+		return nil, ErrNoRows
 	}
 
 	var (
