@@ -47,7 +47,7 @@ type UpdatedAccord struct {
 }
 
 type AccUpdterOpts struct {
-	Store           *CaseStore
+	Store           CaseStore
 	CaseType        internal.CaseType
 	Region          internal.Region
 	MaxSearchBack   int
