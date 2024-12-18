@@ -29,6 +29,7 @@ func main() {
 	// Create an instance of the app structure
 	app := NewApp()
 	caseCtl := controllers.NewCaseControler()
+	accUpdtrCtl := controllers.NewAccordUpdaterCtl()
 
 	// Create application with options
 	err = wails.Run(&options.App{
@@ -44,10 +45,12 @@ func main() {
 		OnStartup: func(ctx context.Context) {
 			app.startup(ctx, db)
 			caseCtl.Startup(ctx, db)
+			accUpdtrCtl.Startup(ctx, db)
 		},
 		Bind: []interface{}{
 			app,
 			caseCtl,
+			accUpdtrCtl,
 		},
 		EnumBind: []interface{}{
 			internal.AllRegions,
