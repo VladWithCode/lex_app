@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/vladwithcode/lex_app/internal"
 	"github.com/vladwithcode/lex_app/internal/db"
 	"github.com/vladwithcode/lex_app/internal/fetchers"
@@ -181,6 +182,46 @@ func (st *DefaultCaseStore) FindById(id string) (*db.LexCase, error) {
 }
 func (st *DefaultCaseStore) FindByKey(key string) (*db.LexCase, error) {
 	return db.FindCase(st.ctx, st.db, key)
+}
+func (st *DefaultCaseStore) Save(updates []*UpdatedAccord) error {
+	ctx, cancel := context.WithTimeout(st.ctx, 10*time.Second)
+	defer cancel()
+
+	tx, err := st.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	createAcc, err := st.db.Prepare(`INSERT INTO accords (id, for_case, content, date)
+VALUES (
+	:Id,
+	SELECT id FROM cases WHERE case_id = :CaseId AND case_type = :CaseType,
+	:Content,
+	:Date
+)`)
+	if err != nil {
+		return err
+	}
+
+	txCreateAcc := tx.StmtContext(ctx, createAcc)
+
+	for _, upd := range updates {
+		id := uuid.Must(uuid.NewV7())
+		_, err = txCreateAcc.ExecContext(
+			ctx,
+			sql.Named("Id", id),
+			sql.Named("CaseId", upd.CaseId),
+			sql.Named("CaseType", upd.CaseType),
+			sql.Named("Content", upd.Content),
+			sql.Named("Date", upd.Date),
+		)
+		_, err = tx.ExecContext(ctx, "")
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Appends CaseRows and index entries from the mergingTable into the targetTable
