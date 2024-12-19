@@ -110,7 +110,7 @@ func (updter *GeneralUpdater) Update(caseKeys []string, startSearchDate time.Tim
 			fmt.Printf("Search Err[%d]: %v\n", i, sErr)
 		}
 
-		return caseKeys, ErrNoUpdates
+		return nil, ErrNoUpdates
 	}
 
 	store := updter.getStore()
@@ -124,12 +124,12 @@ func (updter *GeneralUpdater) Update(caseKeys []string, startSearchDate time.Tim
 	}
 
 	foundMap := map[string]bool{}
-	notFoundCount := max(len(caseKeys)-len(updatedAccords), 0)
-	notFoundKeys = make([]string, notFoundCount)
+	notFoundKeys = []string{}
 
 	for _, acc := range updatedAccords {
 		foundMap[acc.CaseKey] = true
 	}
+
 	for _, k := range caseKeys {
 		if !foundMap[k] {
 			notFoundKeys = append(notFoundKeys, k)

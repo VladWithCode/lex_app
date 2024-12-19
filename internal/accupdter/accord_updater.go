@@ -191,33 +191,58 @@ func (st *DefaultCaseStore) Save(updates []*UpdatedAccord) error {
 	if err != nil {
 		return err
 	}
+	findCase, err := st.db.Prepare(`SELECT id FROM cases WHERE case_id = :CaseId AND case_type = :CaseType`)
+	if err != nil {
+		return err
+	}
+	defer findCase.Close()
+
 	createAcc, err := st.db.Prepare(`INSERT INTO accords (id, for_case, content, date)
 VALUES (
 	:Id,
-	SELECT id FROM cases WHERE case_id = :CaseId AND case_type = :CaseType,
+	:ForCase,
 	:Content,
 	:Date
 )`)
 	if err != nil {
 		return err
 	}
+	defer createAcc.Close()
 
+	txFindCase := tx.StmtContext(ctx, findCase)
+	defer txFindCase.Close()
 	txCreateAcc := tx.StmtContext(ctx, createAcc)
+	defer txCreateAcc.Close()
 
 	for _, upd := range updates {
-		id := uuid.Must(uuid.NewV7())
+		id := uuid.Must(uuid.NewV7()).String()
+
+		caseRecordId := ""
+		err := txFindCase.QueryRowContext(
+			ctx,
+			sql.Named("CaseId", upd.CaseId),
+			sql.Named("CaseType", upd.CaseType),
+		).Scan(&caseRecordId)
+		if err != nil {
+			fmt.Printf("SELECT err: %v\n", err)
+			st.failedSaveCaseKeys = append(st.failedSaveCaseKeys, upd.CaseId)
+			continue
+		}
+
 		_, err = txCreateAcc.ExecContext(
 			ctx,
 			sql.Named("Id", id),
-			sql.Named("CaseId", upd.CaseId),
-			sql.Named("CaseType", upd.CaseType),
+			sql.Named("ForCase", caseRecordId),
 			sql.Named("Content", upd.Content),
 			sql.Named("Date", upd.Date),
 		)
-		_, err = tx.ExecContext(ctx, "")
+		if err != nil {
+			fmt.Printf("INSERT err: %v\n", err)
+			st.failedSaveCaseKeys = append(st.failedSaveCaseKeys, upd.CaseId)
+		}
 	}
 
-	if err != nil {
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 
