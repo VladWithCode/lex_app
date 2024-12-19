@@ -18,6 +18,7 @@ var (
 	ErrFatalSearch = errors.New("Search for case updates failed")
 	ErrNoUpdates   = errors.New("Found no updates for the provided parameters")
 	ErrNilStore    = errors.New("The configured store is nil. But a store dependant method was called")
+	ErrFailSave    = errors.New("Failed to save accords")
 )
 
 type CaseTypesMap map[internal.CaseType][]string
@@ -120,7 +121,7 @@ func (updter *GeneralUpdater) Update(caseKeys []string, startSearchDate time.Tim
 
 	err = store.Save(updatedAccords)
 	if err != nil {
-		return nil, err
+		return nil, ErrFailSave
 	}
 
 	foundMap := map[string]bool{}
