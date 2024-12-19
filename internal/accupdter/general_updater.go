@@ -62,7 +62,11 @@ func NewGeneralUpdater(conf *GenUpdterConf) *GeneralUpdater {
 	return &GeneralUpdater{conf}
 }
 
-func (updter *GeneralUpdater) Update(caseKeys []string, startSearchDate time.Time, maxSearchBack int) (notFoundKeys []string, err error) {
+func (updter *GeneralUpdater) Update(
+	caseKeys []string,
+	startSearchDate time.Time,
+	maxSearchBack int,
+) (notFoundKeys []string, err error) {
 	if len(caseKeys) == 0 {
 		return nil, ErrNoCaseKeys
 	}
