@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { CreateCase, FindCaseById, FindCases, FindCaseWithAccords, UpdateCase } from "../../wailsjs/go/controllers/CaseController"
 import { db } from "../../wailsjs/go/models";
 
-export type FindCaseOptions = Partial<db.lexFindCaseOptions>
+export type FindCaseOptions = Partial<db.FindCaseOptions>
 
 const caseKeys = {
     all: ["cases"] as const,
@@ -20,7 +20,7 @@ export function useCases(filters: FindCaseOptions) {
     return useQuery({
         queryKey: caseKeys.list(filters),
         queryFn: async () => {
-            return await FindCases(filters as db.lexFindCaseOptions)
+            return await FindCases(filters as db.FindCaseOptions)
         }
     })
 }
@@ -58,12 +58,12 @@ export function useCreateCase() {
 
 type UpdateCaseParams = {
     id: string;
-    caseData: Partial<db.lexCase>;
+    caseData: Partial<db.LexCase>;
 }
 export function useUpdateCase() {
     return useMutation({
         mutationFn: ({ caseData, id }: UpdateCaseParams) => {
-            return UpdateCase(id, caseData as db.lexCase)
+            return UpdateCase(id, caseData as db.LexCase)
         }
     })
 }

@@ -6,7 +6,7 @@ import { db } from "../../../wailsjs/go/models"
 import { CaseType, caseTypeToName } from "../../lib/caseTypeNames";
 
 export type CaseCardProps = React.PropsWithChildren & {
-    caseData: db.lexCase
+    caseData: db.LexCase
 }
 
 export default function CaseCard({ caseData, children }: CaseCardProps) {
@@ -33,8 +33,8 @@ export default function CaseCard({ caseData, children }: CaseCardProps) {
 
 function DefaultCardContent({ caseData }: CaseCardProps) {
     return (
-        <CardContent className="space-y-2 px-3 py-1.5 pb-3">
-            <p className="text-stone-200 font-medium">Ultimo acceso: {caseData.lastAccessedAt}</p>
+        <CardContent className="grow space-y-2 px-3 py-1.5 pb-3">
+            <p className="text-stone-200 font-medium">Ultimo acceso: {String(caseData.lastAccessedAt)}</p>
         </CardContent>
     )
 }
