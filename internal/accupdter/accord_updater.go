@@ -231,7 +231,7 @@ VALUES (
 			sql.Named("Id", id),
 			sql.Named("ForCase", caseRecordId),
 			sql.Named("Content", upd.Content),
-			sql.Named("Date", upd.Date),
+			sql.Named("Date", upd.Date.Unix()),
 		)
 		if err != nil {
 			fmt.Printf("Failed to INSERT: %v\n", err) // TODO: Remove

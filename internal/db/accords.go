@@ -13,6 +13,7 @@ type Accord struct {
 	ForCase string    `json:"forCase" db:"for_case"`
 	Content string    `json:"content" db:"content"`
 	Date    time.Time `json:"date" db:"date"`
+	DateStr string    `json:"dateStr" db:"-"`
 	rawData string
 }
 
@@ -55,6 +56,7 @@ func FindAllAccordsForCase(ctx context.Context, appDb *sql.DB, caseId string) ([
 			v, _ := rd.Value()
 			a.rawData = v.(string)
 		}
+		a.DateStr = a.Date.Format("2006-01-02")
 		accords = append(accords, &a)
 	}
 
@@ -84,6 +86,7 @@ func FindLatestAccordForCase(ctx context.Context, appDb *sql.DB, caseId string) 
 		v, _ := rd.Value()
 		accord.rawData = v.(string)
 	}
+	accord.DateStr = accord.Date.Format("2006-01-02")
 
 	return &accord, nil
 }

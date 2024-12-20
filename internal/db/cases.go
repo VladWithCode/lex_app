@@ -231,7 +231,7 @@ func FindFilteredCases(ctx context.Context, appDb *sql.DB, opts *FindCaseOptions
 	if opts.IncludeAccords {
 		baseQuery = `SELECT 
 cases.id, cases.case_id, cases.case_type, cases.case_year, cases.case_no, cases.alias,
-cases.other_ids, accords.accord_id, accords.content, unixepoch(accords.date) as date, accords.raw_data
+cases.other_ids, accords.accord_id, accords.content, unixepoch(accords.date, 'unixepoch') as date, accords.raw_data
 FROM cases LEFT JOIN (
 	SELECT
 		id as accord_id, for_case, content, date, raw_data,
@@ -313,9 +313,8 @@ FROM cases LEFT JOIN (
 			&accDate,
 			&accord.rawData,
 		)
-		if accDate != 0 {
-			accord.Date = time.Unix(int64(accDate), 0)
-		}
+		accord.Date = time.Unix(int64(accDate), 0)
+		accord.DateStr = accord.Date.Local().Format(time.RFC3339)
 
 		if cIdx, ok := caseMap[id]; ok {
 			cases[cIdx].Accords = append(cases[cIdx].Accords, &accord)
