@@ -7,7 +7,7 @@ import { formatDateToShortReadable } from "../../lib/formatUtils"
 export default function RecentCases() {
     const { data, isSuccess, isLoading, isError } = useCases({ Limit: 5, IncludeAccords: true, MaxAccords: 1 })
 
-    if (isError) {
+    if (isError || !isSuccess) {
         return <div className="flex h-36 items-center justify-center">
             <p className="text-stone-200 text-xl font-semibold">Ocurrio un error al recuperar los casos</p>
         </div>
@@ -21,15 +21,15 @@ export default function RecentCases() {
     }
 
     return <div className="flex gap-4 max-w-full overflow-visible mb-2">
-        {isSuccess && data.map(c => (
+        {data.map(c => (
             <CaseCard key={c.id} caseData={c}>
-                <CardContent className="p-2 space-y-2">
+                <CardContent className="flex flex-col p-2 gap-2 grow">
                     <p className="text-xl text-stone-200 line-clamp-3 overflow-clip text-ellipsis">
                         {c.accords[0].content}
                     </p>
-                    <p className="text-stone-400 font-semibold">
+                    <p className="text-stone-400 font-semibold mt-auto">
                         Fecha de Acuerdo: <span className="capitalize">{
-                            formatDateToShortReadable(new Date(c.accords[0].date))
+                            formatDateToShortReadable(new Date(c.accords[0].dateStr))
                         }</span>
                     </p>
                 </CardContent>
