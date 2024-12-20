@@ -224,11 +224,8 @@ VALUES (
 			sql.Named("CaseType", upd.CaseType),
 		).Scan(&caseRecordId)
 		if err != nil {
-			fmt.Printf("SELECT err: %v\n", err)
-			st.failedSaveCaseKeys = append(st.failedSaveCaseKeys, upd.CaseId)
 			continue
 		}
-
 		_, err = txCreateAcc.ExecContext(
 			ctx,
 			sql.Named("Id", id),
@@ -237,8 +234,7 @@ VALUES (
 			sql.Named("Date", upd.Date),
 		)
 		if err != nil {
-			fmt.Printf("INSERT err: %v\n", err)
-			st.failedSaveCaseKeys = append(st.failedSaveCaseKeys, upd.CaseId)
+			fmt.Printf("Failed to INSERT: %v\n", err) // TODO: Remove
 		}
 	}
 
