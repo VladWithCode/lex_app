@@ -8,7 +8,6 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    SidebarProvider,
     SidebarTrigger,
     useSidebar,
 } from "../ui/sidebar";
