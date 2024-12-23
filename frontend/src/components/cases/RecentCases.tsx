@@ -27,6 +27,9 @@ export default function RecentCases() {
                     <p className="text-xl text-stone-200 line-clamp-3 overflow-clip text-ellipsis">
                         {c.accords[0].content}
                     </p>
+                    <p className="text-stone-400 font-semibold mt-auto text-sm">
+                        {c.nature.toLowerCase()}
+                    </p>
                     <p className="text-stone-400 font-semibold mt-auto">
                         Fecha de Acuerdo: <span className="capitalize">{
                             formatDateToShortReadable(new Date(c.accords[0].dateStr))
