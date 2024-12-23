@@ -23,15 +23,15 @@ const items = [
         icon: Home,
     },
     {
+        title: "Mis Casos",
+        url: "/casos",
+        icon: LucideFolder,
+    },
+    {
         title: "Buscar",
         url: "/buscador",
         icon: SearchX,
     },
-    {
-        title: "Casos",
-        url: "/casos",
-        icon: LucideFolder,
-    }
 ]
 
 export default function AppSidebar() {
