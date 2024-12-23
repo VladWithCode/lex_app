@@ -28,6 +28,7 @@ type LexCase struct {
 	CaseType       string    `json:"caseType" db:"case_type"`
 	CaseYear       string    `json:"caseYear" db:"case_year"`
 	CaseNo         string    `json:"caseNo" db:"case_no"`
+	Nature         string    `json:"nature" db:"nature"`
 	LastUpdatedAt  time.Time `json:"lastUpdatedAt" db:"last_updated_at"`
 	LastAccessedAt time.Time `json:"lastAccessedAt" db:"last_accessed_at"`
 	Alias          string    `json:"alias" db:"alias"`
@@ -146,8 +147,8 @@ func InsertCase(ctx context.Context, appDb *sql.DB, caseData *LexCase) error {
 	otherIds := strings.Join(caseData.OtherIds, otherIdsSeparator)
 	_, err := appDb.ExecContext(
 		ctx,
-		`INSERT INTO cases (id, case_id, case_type, case_year, case_no, alias, other_ids)
-		VALUES (:Id, :CaseId, :CaseType, :CaseYear, :CaseNo, :Alias, :OtherIds)`,
+		`INSERT INTO cases (id, case_id, case_type, case_year, case_no, alias, other_ids, nature)
+		VALUES (:Id, :CaseId, :CaseType, :CaseYear, :CaseNo, :Alias, :OtherIds, :Nature)`,
 		sql.Named("Id", caseData.Id),
 		sql.Named("CaseId", caseData.CaseId),
 		sql.Named("CaseType", caseData.CaseType),
@@ -155,6 +156,7 @@ func InsertCase(ctx context.Context, appDb *sql.DB, caseData *LexCase) error {
 		sql.Named("CaseNo", caseData.CaseNo),
 		sql.Named("Alias", caseData.Alias),
 		sql.Named("OtherIds", otherIds),
+		sql.Named("Nature", caseData.Nature),
 	)
 
 	if err != nil {
@@ -169,7 +171,7 @@ func FindAllCases(ctx context.Context, appDb *sql.DB) ([]*LexCase, error) {
 	defer cancel()
 	rows, err := appDb.QueryContext(
 		ctx,
-		"SELECT id, case_id, case_type, case_year, case_no, alias, other_ids FROM cases",
+		"SELECT id, case_id, case_type, case_year, case_no, alias, other_ids, nature FROM cases",
 	)
 	if err != nil {
 		return nil, err
@@ -180,6 +182,7 @@ func FindAllCases(ctx context.Context, appDb *sql.DB) ([]*LexCase, error) {
 	nCaseYear := sql.NullString{}
 	nCaseNo := sql.NullString{}
 	nAlias := sql.NullString{}
+	nNature := sql.NullString{}
 
 	for rows.Next() {
 		nOtherIds.Valid = false
@@ -196,6 +199,7 @@ func FindAllCases(ctx context.Context, appDb *sql.DB) ([]*LexCase, error) {
 			&nCaseNo,
 			&nAlias,
 			&nOtherIds,
+			&nNature,
 		)
 		if nCaseYear.Valid {
 			c.CaseYear = nCaseYear.String
@@ -205,6 +209,9 @@ func FindAllCases(ctx context.Context, appDb *sql.DB) ([]*LexCase, error) {
 		}
 		if nAlias.Valid {
 			c.Alias = nAlias.String
+		}
+		if nNature.Valid {
+			c.Nature = nNature.String
 		}
 
 		if nOtherIds.Valid {
@@ -231,7 +238,7 @@ func FindFilteredCases(ctx context.Context, appDb *sql.DB, opts *FindCaseOptions
 	if opts.IncludeAccords {
 		baseQuery = `SELECT 
 cases.id, cases.case_id, cases.case_type, cases.case_year, cases.case_no, cases.alias,
-cases.other_ids, accords.accord_id, accords.content, unixepoch(accords.date, 'unixepoch') as date, accords.raw_data
+cases.other_ids, cases.nature, accords.accord_id, accords.content, unixepoch(accords.date, 'unixepoch') as date, accords.raw_data
 FROM cases LEFT JOIN (
 	SELECT
 		id as accord_id, for_case, content, date, raw_data,
@@ -296,6 +303,7 @@ FROM cases LEFT JOIN (
 			caseNo   = sql.NullString{}
 			alias    = sql.NullString{}
 			othIds   = sql.NullString{}
+			nature   = sql.NullString{}
 			accord   = Accord{}
 			accDate  = 0
 		)
@@ -308,6 +316,7 @@ FROM cases LEFT JOIN (
 			&caseNo,
 			&alias,
 			&othIds,
+			&nature,
 			&accord.Id,
 			&accord.Content,
 			&accDate,
@@ -348,7 +357,7 @@ func FindCasesById(ctx context.Context, appDb *sql.DB, ids []string) ([]*LexCase
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	rows, err := appDb.QueryContext(ctx, "SELECT id, case_id, case_type FROM cases WHERE id IN :Ids", sql.Named("Ids", ids))
+	rows, err := appDb.QueryContext(ctx, "SELECT id, case_id, case_type, nature FROM cases WHERE id IN :Ids", sql.Named("Ids", ids))
 	if err != nil {
 		return nil, err
 	}
@@ -356,11 +365,16 @@ func FindCasesById(ctx context.Context, appDb *sql.DB, ids []string) ([]*LexCase
 	cases := []*LexCase{}
 	for rows.Next() {
 		c := NewEmptyCase()
+		nNature := sql.NullString{}
 		rows.Scan(
 			&c.Id,
 			&c.CaseId,
 			&c.CaseType,
+			&nNature,
 		)
+		if nNature.Valid {
+			c.Nature = nNature.String
+		}
 
 		cases = append(cases, c)
 	}
@@ -375,12 +389,13 @@ func FindCasesById(ctx context.Context, appDb *sql.DB, ids []string) ([]*LexCase
 func FindCaseById(ctx context.Context, appDb *sql.DB, id string) (*LexCase, error) {
 	row := appDb.QueryRowContext(
 		ctx,
-		`SELECT id, case_id, case_type, case_year, case_no, alias, other_ids FROM cases WHERE id = :Id`,
+		`SELECT id, case_id, case_type, case_year, case_no, alias, other_ids, nature FROM cases WHERE id = :Id`,
 		sql.Named("Id", id),
 	)
 
 	c := &LexCase{}
 	otherIds := new(string)
+	nNature := sql.NullString{}
 	err := row.Scan(
 		&c.Id,
 		&c.CaseId,
@@ -389,6 +404,7 @@ func FindCaseById(ctx context.Context, appDb *sql.DB, id string) (*LexCase, erro
 		&c.CaseNo,
 		&c.Alias,
 		&otherIds,
+		&nNature,
 	)
 	if err != nil {
 		return nil, err
@@ -396,6 +412,9 @@ func FindCaseById(ctx context.Context, appDb *sql.DB, id string) (*LexCase, erro
 
 	if len(*otherIds) > 0 {
 		c.SetIdsFromStr(*otherIds)
+	}
+	if nNature.Valid {
+		c.Nature = nNature.String
 	}
 
 	return c, nil
@@ -407,7 +426,7 @@ func FindCases(ctx context.Context, appDb *sql.DB, caseKeys []string) ([]*LexCas
 
 	rows, err := appDb.QueryContext(
 		ctx,
-		"SELECT id, case_id, case_type, (case_id || ':' || case_type) as case_key FROM cases WHERE case_key IN :CaseKeys",
+		"SELECT id, case_id, case_type, (case_id || ':' || case_type) as case_key, nature FROM cases WHERE case_key IN :CaseKeys",
 		sql.Named("CaseKeys", caseKeys),
 	)
 	if err != nil {
@@ -417,10 +436,12 @@ func FindCases(ctx context.Context, appDb *sql.DB, caseKeys []string) ([]*LexCas
 	cases := []*LexCase{}
 	for rows.Next() {
 		c := NewEmptyCase()
+		nNature := sql.NullString{}
 		rows.Scan(
 			&c.Id,
 			&c.CaseId,
 			&c.CaseType,
+			&nNature,
 		)
 
 		cases = append(cases, c)
@@ -436,12 +457,13 @@ func FindCases(ctx context.Context, appDb *sql.DB, caseKeys []string) ([]*LexCas
 func FindCase(ctx context.Context, appDb *sql.DB, caseKey string) (*LexCase, error) {
 	row := appDb.QueryRowContext(
 		ctx,
-		"SELECT id, case_id, case_type, case_year, case_no, alias, other_ids, (case_id || ':' || case_type) as case_key FROM cases WHERE case_key = :CaseKey",
+		"SELECT id, case_id, case_type, case_year, case_no, alias, other_ids, nature FROM cases WHERE (case_id || ':' || case_type) = :CaseKey",
 		sql.Named("CaseKey", caseKey),
 	)
 
 	c := NewEmptyCase()
 	otherIds := new(string)
+	nNature := sql.NullString{}
 	err := row.Scan(
 		&c.Id,
 		&c.CaseId,
@@ -450,6 +472,7 @@ func FindCase(ctx context.Context, appDb *sql.DB, caseKey string) (*LexCase, err
 		&c.CaseNo,
 		&c.Alias,
 		otherIds,
+		&nNature,
 	)
 
 	if err != nil {
@@ -472,6 +495,7 @@ func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCo
 			cases.case_id,
 			cases.case_type,
 			cases.alias,
+			cases.nature,
 			accords.id,
 			accords.content,
 			date(accords.date) as date,
@@ -495,11 +519,13 @@ func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCo
 			acDate    sql.NullTime
 			acRawData sql.NullString
 		)
+		nNature := sql.NullString{}
 		rows.Scan(
 			&c.Id,
 			&c.CaseId,
 			&c.CaseType,
 			&c.Alias,
+			&nNature,
 			&acId,
 			&acContent,
 			&acDate,
