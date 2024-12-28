@@ -36,8 +36,8 @@ func main() {
 		Title:     "lex_app",
 		MinWidth:  1024,
 		MinHeight: 768,
-		Width:     1024,
-		Height:    768,
+		Width:     1600,
+		Height:    900,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
