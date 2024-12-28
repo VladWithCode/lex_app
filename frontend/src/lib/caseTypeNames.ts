@@ -26,3 +26,38 @@ export function caseTypeToName(ct: CaseType): string {
 
     return name || "Otro"
 }
+
+export const tribunalCategoryMap = {
+    aux: "Auxiliar",
+    civ: "Civil",
+    fam: "Familiar",
+    mer: "Mercantil",
+    sec: "Secretaría Civil",
+    cjm: "CJM",
+    tri: "Tribunal Laboral",
+    oth: "Otro",
+}
+
+export type TribunalCategoryOptions = Record<keyof typeof tribunalCategoryMap, { title: string, elements: { val: string, label: string }[] }>
+export function getTribunalCategoryOptions(): TribunalCategoryOptions {
+    let options: TribunalCategoryOptions = {
+        aux: { title: tribunalCategoryMap.aux, elements: [] },
+        civ: { title: tribunalCategoryMap.civ, elements: [] },
+        fam: { title: tribunalCategoryMap.fam, elements: [] },
+        mer: { title: tribunalCategoryMap.mer, elements: [] },
+        sec: { title: tribunalCategoryMap.sec, elements: [] },
+        cjm: { title: tribunalCategoryMap.cjm, elements: [] },
+        tri: { title: tribunalCategoryMap.tri, elements: [] },
+        oth: { title: tribunalCategoryMap.oth, elements: [] },
+    }
+
+    for (let [k, v] of Object.entries(caseTypeNameMap)) {
+        let trib = k.slice(0, 3) as keyof typeof tribunalCategoryMap
+        if (tribunalCategoryMap[trib]) {
+            options[trib].elements.push({ val: k, label: v });
+        } else {
+            options.oth.elements.push({ val: k, label: v });
+        }
+    }
+    return options
+}
