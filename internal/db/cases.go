@@ -20,6 +20,7 @@ const (
 
 var (
 	ErrorInvalidCaseId = errors.New("caseId is not in a valid format. Should be formatted as '123/2024[-I]'")
+	ErrNilOpts         = errors.New("FindFilteredCases: opts is nil")
 )
 
 type LexCase struct {
@@ -237,6 +238,10 @@ func FindFilteredCases(ctx context.Context, appDb *sql.DB, opts *FindCaseOptions
 	baseQuery := "SELECT cases.id, cases.case_id, cases.case_type, cases.case_year, cases.case_no, cases.alias, cases.other_ids, cases.nature"
 	args := []interface{}{}
 	conditions := []string{}
+	if opts == nil {
+		return nil, ErrNilOpts
+	}
+
 	if opts.IncludeAccords {
 		baseQuery = fmt.Sprintf("%s, %s", baseQuery, "accords.accord_id, accords.content, unixepoch(accords.date, 'unixepoch') as date FROM cases LEFT JOIN (SELECT id as accord_id, for_case, content, date, ROW_NUMBER() OVER (PARTITION BY for_case ORDER BY date DESC NULLS LAST) as rn FROM accords) accords ON cases.id = accords.for_case AND accords.rn <= :accordCount")
 		args = append(args, sql.Named("accordCount", opts.MaxAccords))
