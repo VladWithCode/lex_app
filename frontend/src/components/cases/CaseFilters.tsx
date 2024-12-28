@@ -17,11 +17,11 @@ export default function CaseFilters({ setFilter, filters }: CaseFiltersParams) {
     }
 
     return (
-        <div className="space-y-1.5 max-w-full">
+        <div className="space-y-1.5 max-w-full p-px overflow-hidden">
             <div className="flex gap-2">
                 <h4 className="text-xl font-medium">Filtros</h4>
             </div>
-            <div className="flex gap-3 overflow-hidden">
+            <div className="flex gap-3">
                 <div className="basis-80 shrink space-y-1">
                     <Label htmlFor="case-filter-search">Buscar</Label>
                     <Input
