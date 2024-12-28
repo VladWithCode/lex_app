@@ -2,7 +2,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { CreateCase, FindCaseById, FindCases, FindCaseWithAccords, UpdateCase } from "../../wailsjs/go/controllers/CaseController"
 import { db } from "../../wailsjs/go/models";
 
-export type FindCaseOptions = Partial<db.FindCaseOptions>
+export type FindCaseOptions = Partial<db.FindCaseOptions> & {
+    search?: string;
+}
 
 const caseKeys = {
     all: ["cases"] as const,

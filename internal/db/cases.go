@@ -127,6 +127,7 @@ type FindCaseOptions struct {
 	LastUpdatedAt  string
 	IncludeAccords bool
 	MaxAccords     int
+	Search         string
 }
 
 var DefaultFindCaseOptions = FindCaseOptions{
@@ -138,6 +139,7 @@ var DefaultFindCaseOptions = FindCaseOptions{
 	LastUpdatedAt:  "",
 	IncludeAccords: false,
 	MaxAccords:     1,
+	Search:         "",
 }
 
 func InsertCase(ctx context.Context, appDb *sql.DB, caseData *LexCase) error {
@@ -232,38 +234,35 @@ func FindAllCases(ctx context.Context, appDb *sql.DB) ([]*LexCase, error) {
 func FindFilteredCases(ctx context.Context, appDb *sql.DB, opts *FindCaseOptions) ([]*LexCase, error) {
 	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
 	defer cancel()
-	baseQuery := ""
+	baseQuery := "SELECT cases.id, cases.case_id, cases.case_type, cases.case_year, cases.case_no, cases.alias, cases.other_ids, cases.nature"
 	args := []interface{}{}
 	conditions := []string{}
 	if opts.IncludeAccords {
-		baseQuery = `SELECT 
-cases.id, cases.case_id, cases.case_type, cases.case_year, cases.case_no, cases.alias,
-cases.other_ids, cases.nature, accords.accord_id, accords.content, unixepoch(accords.date, 'unixepoch') as date, accords.raw_data
-FROM cases LEFT JOIN (
-	SELECT
-		id as accord_id, for_case, content, date, raw_data,
-		ROW_NUMBER() OVER (PARTITION BY for_case ORDER BY date DESC NULLS LAST) as rn
-	FROM accords
-) accords ON cases.id = accords.for_case AND accords.rn <= :accordCount`
+		baseQuery = fmt.Sprintf("%s, %s", baseQuery, "accords.accord_id, accords.content, unixepoch(accords.date, 'unixepoch') as date FROM cases LEFT JOIN (SELECT id as accord_id, for_case, content, date, ROW_NUMBER() OVER (PARTITION BY for_case ORDER BY date DESC NULLS LAST) as rn FROM accords) accords ON cases.id = accords.for_case AND accords.rn <= :accordCount")
 		args = append(args, sql.Named("accordCount", opts.MaxAccords))
 	} else {
-		baseQuery = "SELECT * FROM cases"
+		baseQuery = fmt.Sprintf("%s FROM cases", baseQuery)
+	}
+
+	if opts.Search != "" {
+		baseQuery = fmt.Sprintf("%s INNER JOIN cases_fts ON cases.id = cases_fts.uuid WHERE cases_fts MATCH :search||'*'", baseQuery)
+		args = append(args, sql.Named("search", opts.Search))
 	}
 
 	if opts.CaseId != "" {
-		conditions = append(conditions, "case_id LIKE '%%:caseId%'")
+		conditions = append(conditions, "case_id LIKE '%'||:caseId||'%'")
 		args = append(args, sql.Named("caseId", opts.CaseId))
 	}
 	if opts.CaseType != "" {
-		conditions = append(conditions, "case_type LIKE '%%:caseType%'")
+		conditions = append(conditions, "case_type LIKE '%'||:caseType||'%'")
 		args = append(args, sql.Named("caseType", opts.CaseType))
 	}
 	if opts.CaseYear != "" {
-		conditions = append(conditions, "case_year LIKE '%%:caseYear%'")
+		conditions = append(conditions, "case_year LIKE '%'||:caseYear||'%'")
 		args = append(args, sql.Named("caseYear", opts.CaseYear))
 	}
 	if opts.CaseNo != "" {
-		conditions = append(conditions, "case_no LIKE '%%:caseNo%'")
+		conditions = append(conditions, "case_no LIKE '%'||:caseNo||'%'")
 		args = append(args, sql.Named("caseNo", opts.CaseNo))
 	}
 	if opts.LastUpdatedAt != "" {
@@ -296,16 +295,18 @@ FROM cases LEFT JOIN (
 	caseMap := map[string]int{}
 	for rows.Next() {
 		var (
-			id       = ""
-			caseId   = ""
-			caseType = ""
-			caseYear = sql.NullString{}
-			caseNo   = sql.NullString{}
-			alias    = sql.NullString{}
-			othIds   = sql.NullString{}
-			nature   = sql.NullString{}
-			accord   = Accord{}
-			accDate  = 0
+			id             = ""
+			caseId         = ""
+			caseType       = ""
+			caseYear       = sql.NullString{}
+			caseNo         = sql.NullString{}
+			alias          = sql.NullString{}
+			othIds         = sql.NullString{}
+			nature         = sql.NullString{}
+			accord         = Accord{}
+			accord_id      = sql.NullString{}
+			accord_content = sql.NullString{}
+			accDate        = sql.NullInt64{}
 		)
 
 		rows.Scan(
@@ -317,13 +318,22 @@ FROM cases LEFT JOIN (
 			&alias,
 			&othIds,
 			&nature,
-			&accord.Id,
-			&accord.Content,
+			&accord_id,
+			&accord_content,
 			&accDate,
-			&accord.rawData,
 		)
-		accord.Date = time.Unix(int64(accDate), 0)
-		accord.DateStr = accord.Date.Local().Format(time.RFC3339)
+
+		if accord_id.Valid {
+			accord.Id = accord_id.String
+
+			if accord_content.Valid {
+				accord.Content = accord_content.String
+			}
+			if accDate.Valid {
+				accord.Date = time.Unix(accDate.Int64, 0)
+				accord.DateStr = accord.Date.Local().Format(time.RFC3339)
+			}
+		}
 
 		if cIdx, ok := caseMap[id]; ok {
 			cases[cIdx].Accords = append(cases[cIdx].Accords, &accord)
@@ -335,7 +345,9 @@ FROM cases LEFT JOIN (
 			c.CaseYear = caseYear.String
 			c.CaseNo = caseNo.String
 			c.Alias = alias.String
-			c.Accords = []*Accord{&accord}
+			if accord.Id != "" {
+				c.Accords = []*Accord{&accord}
+			}
 			if othIds.Valid {
 				c.SetIdsFromStr(othIds.String)
 			}
