@@ -7,9 +7,9 @@ import { useSidebarStore } from "../../stores/useSidebarStore";
 export default function BaseLayout({ children }: PropsWithChildren) {
     const sidebarStore = useSidebarStore()
     return (
-        <SidebarProvider open={sidebarStore.open} defaultOpen={false}>
+        <SidebarProvider className="h-[calc(100vh-2rem)] min-h-0" open={sidebarStore.open} defaultOpen={true}>
             <AppSidebar />
-            <div className="relative flex flex-col w-full h-full z-0 overflow-scroll p-2">
+            <div className="relative flex flex-col w-full h-[calc(100vh-2rem)] z-0 p-2">
                 {children !== undefined ? children : <Outlet />}
             </div>
         </SidebarProvider>
