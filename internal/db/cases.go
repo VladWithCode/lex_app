@@ -251,7 +251,11 @@ func FindFilteredCases(ctx context.Context, appDb *sql.DB, opts *FindCaseOptions
 
 	if opts.Search != "" {
 		baseQuery = fmt.Sprintf("%s INNER JOIN cases_fts ON cases.id = cases_fts.uuid WHERE cases_fts MATCH :search||'*'", baseQuery)
-		args = append(args, sql.Named("search", opts.Search))
+		s := opts.Search
+		if strings.Contains(s, "/") {
+			s = fmt.Sprintf(`"%s\"`, s)
+		}
+		args = append(args, sql.Named("search", s))
 	}
 
 	if opts.CaseId != "" {
