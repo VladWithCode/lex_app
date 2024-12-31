@@ -313,11 +313,7 @@ func genCaseTypeMap(keys []string) CaseTypesMap {
 		parts := strings.Split(cK, readers.CaseKeySeparator)
 		caseId, caseType := parts[0], internal.CaseType(parts[1])
 
-		if _, ok := caseTypesMap[caseType]; ok {
-			caseTypesMap[caseType] = append(caseTypesMap[caseType], caseId)
-		} else {
-			caseTypesMap[caseType] = []string{caseId}
-		}
+		caseTypesMap[caseType] = append(caseTypesMap[caseType], caseId)
 	}
 
 	return caseTypesMap
