@@ -232,16 +232,13 @@ VALUES (
 		if err != nil {
 			continue
 		}
-		_, err = txCreateAcc.ExecContext(
+		txCreateAcc.ExecContext(
 			ctx,
 			sql.Named("Id", id),
 			sql.Named("ForCase", caseRecordId),
 			sql.Named("Content", upd.Content),
 			sql.Named("Date", upd.Date.Unix()),
 		)
-		if err != nil {
-			fmt.Printf("Failed to INSERT: %v\n", err) // TODO: Remove
-		}
 	}
 
 	if err := tx.Commit(); err != nil {
