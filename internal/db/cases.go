@@ -67,6 +67,9 @@ func NewCase(caseId, caseType string) (*LexCase, error) {
 		strings.Split(caseId, caseTrailSeparator)[0],
 		casePartsSeparator,
 	)
+	if len(parts) != 2 {
+		return nil, ErrorInvalidCaseId
+	}
 	c.CaseNo = parts[0]
 	c.CaseYear = parts[1]
 
@@ -107,6 +110,9 @@ func isValidCaseId(candidate string) bool {
 	parts := strings.Split(candidate, casePartsSeparator)
 
 	if parts[0] == "" {
+		return false
+	}
+	if len(parts) != 2 {
 		return false
 	}
 
