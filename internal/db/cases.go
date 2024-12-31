@@ -530,10 +530,10 @@ func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCo
 		FROM cases
 		LEFT JOIN accords
 		ON cases.id = accords.for_case
-		WHERE cases.id = $1
-		LIMIT $2`,
-		id,
-		accordCount,
+		WHERE cases.id = :Id
+		LIMIT :AccordCount`,
+		sql.Named("Id", id),
+		sql.Named("AccordCount", accordCount),
 	)
 	if err != nil {
 		return nil, err
