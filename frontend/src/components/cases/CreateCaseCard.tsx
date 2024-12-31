@@ -19,12 +19,13 @@ export default function CreateCaseCard() {
         caseType: string,
         alias: string
     }>({ caseNo: "", caseType: "", alias: "" })
+    const [displayErr, setDisplayErr] = useState("")
     const onFieldChange = (field: keyof typeof fields, value: string) => {
         setFields(prev => ({ ...prev, [field]: value }))
+        setDisplayErr("")
     }
 
     const [isLoading, setIsLoading] = useState(false)
-    const [displayErr, setDisplayErr] = useState("")
     const [caseUUID, setCaseUUID] = useState("")
 
     const createCase = useCreateCase()
@@ -46,9 +47,9 @@ export default function CreateCaseCard() {
                     if (errMsg.includes("UNIQUE")) {
                         setDisplayErr(
                             "Ya existe un registro para el caso "
-                                + fields.caseNo
-                                + " | "
-                                + caseTypeToName(fields.caseType as CaseType)
+                            + fields.caseNo
+                            + " | "
+                            + caseTypeToName(fields.caseType as CaseType)
                         )
                     } else if (errMsg.includes("caseId invalid format")) {
                         setDisplayErr(
@@ -91,6 +92,7 @@ export default function CreateCaseCard() {
                     <div className="flex-1 space-y-2">
                         <Label htmlFor="new-case-caseno">No. de Expediente</Label>
                         <Input
+                            className="bg-stone-900"
                             name="new-case-caseno"
                             id="new-case-caseno"
                             type="text"
@@ -104,7 +106,9 @@ export default function CreateCaseCard() {
                             name="new-case-casetype"
                             value={fields.caseType}
                             onValueChange={val => onFieldChange("caseType", val)}>
-                            <SelectTrigger title="El juzgado del expediente">
+                            <SelectTrigger
+                                className="bg-stone-900"
+                                title="El juzgado del expediente">
                                 <SelectValue placeholder="Elige un juzgado..." />
                             </SelectTrigger>
                             <SelectContent>
@@ -123,6 +127,7 @@ export default function CreateCaseCard() {
                 <div className="space-y-2">
                     <Label>Alias</Label>
                     <Input
+                        className="bg-stone-900"
                         name="caseNo"
                         id="new-case-caseno"
                         type="text"
