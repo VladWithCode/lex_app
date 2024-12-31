@@ -6,21 +6,21 @@ export type FindCaseOptions = Partial<db.FindCaseOptions> & {
     search?: string;
 }
 
-const caseKeys = {
+const caseQueryKeys = {
     all: ["cases"] as const,
-    lists: () => [...caseKeys.all, "list"] as const,
-    list: (filters?: FindCaseOptions) => [...caseKeys.lists(), filters] as const,
+    lists: () => [...caseQueryKeys.all, "list"] as const,
+    list: (filters?: FindCaseOptions) => [...caseQueryKeys.lists(), filters] as const,
     //listWith: (filters: CaseFilters) => [...caseKeys.lists(), filters] as const,
-    details: () => [...caseKeys.all, "detail"] as const,
-    detail: (id: string) => [...caseKeys.details(), id] as const,
+    details: () => [...caseQueryKeys.all, "detail"] as const,
+    detail: (id: string) => [...caseQueryKeys.details(), id] as const,
 
-    detailsAndAccords: () => [...caseKeys.details(), "accords"] as const,
-    detailAndAccords: (id: string, accordCount: number) => [...caseKeys.detailsAndAccords(), id, accordCount] as const
+    detailsAndAccords: () => [...caseQueryKeys.details(), "accords"] as const,
+    detailAndAccords: (id: string, accordCount: number) => [...caseQueryKeys.detailsAndAccords(), id, accordCount] as const
 }
 
 export function useCases(filters: FindCaseOptions) {
     return useQuery({
-        queryKey: caseKeys.list(filters),
+        queryKey: caseQueryKeys.list(filters),
         queryFn: async () => {
             return await FindCases(filters as db.FindCaseOptions)
         }
@@ -29,7 +29,7 @@ export function useCases(filters: FindCaseOptions) {
 
 export function useCase(id: string) {
     return useQuery({
-        queryKey: caseKeys.detail(id),
+        queryKey: caseQueryKeys.detail(id),
         queryFn: async () => {
             return await FindCaseById(id)
         }
@@ -38,7 +38,7 @@ export function useCase(id: string) {
 
 export function useCaseWithAccords(id: string, accordCount: number) {
     return useQuery({
-        queryKey: caseKeys.detailAndAccords(id, accordCount),
+        queryKey: caseQueryKeys.detailAndAccords(id, accordCount),
         queryFn: async ({ queryKey }) => {
             const [_key, _, __, id, count] = queryKey
             return await FindCaseWithAccords(id, count)
