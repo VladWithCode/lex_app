@@ -227,7 +227,6 @@ func (updter *GeneralUpdater) getUpdates(updateParams *getUpdatesParams) {
 
 	for i := 0; i <= updateParams.daysBack; i++ {
 		updatedAccords := []*UpdatedAccord{}
-		fmt.Printf("Fetching with date %q for caseType %q [attempt %d]\n", searchDate, updateParams.caseType, i+1)
 
 		data, err := updter.conf.FetchFn(searchDate, updateParams.caseType)
 		if err != nil {
