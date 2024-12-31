@@ -546,7 +546,7 @@ func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCo
 		var (
 			acId      sql.NullString
 			acContent sql.NullString
-			acDate    sql.NullTime
+			acDate    sql.NullInt64
 			acRawData sql.NullString
 		)
 		nOthIds := sql.NullString{}
@@ -567,10 +567,12 @@ func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCo
 		)
 
 		if acId.Valid {
+			tt := time.Unix(acDate.Int64, 0)
 			c.Accords = append(c.Accords, &Accord{
 				Id:      acId.String,
 				Content: acContent.String,
-				Date:    acDate.Time,
+				Date:    tt,
+				DateStr: tt.Format(time.RFC3339),
 				rawData: acRawData.String,
 				ForCase: c.Id,
 			})
