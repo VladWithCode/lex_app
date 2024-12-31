@@ -3,6 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card
 import { Separator } from "../ui/separator";
 import { db } from "../../../wailsjs/go/models"
 import { CaseType, caseTypeToName } from "../../lib/caseTypeNames";
+import { Link } from "react-router";
 
 export type CaseCardProps = React.PropsWithChildren & {
     caseData: db.LexCase
@@ -25,8 +26,13 @@ export default function CaseCard({ caseData, children }: CaseCardProps) {
             <Separator />
             <CardFooter className="p-0 shrink-0">
                 <Button
-                    className="flex text-stone-50 bg-zinc-900 hover:bg-stone-800 rounded-none justify-center flex-grow basis-1/3 max-w-1/2 py-1">
-                    <span className="mx-auto text-lg font-bold">Ver</span>
+                    asChild
+                    className="flex text-stone-50 text-lg font-bold bg-zinc-900 hover:bg-stone-800 rounded-none justify-center flex-grow basis-1/3 max-w-1/2 py-1">
+                    <Link
+                        to={"/casos/" + caseData.id}
+                        className="mx-auto">
+                        Ver
+                    </Link>
                 </Button>
             </CardFooter>
         </Card>
