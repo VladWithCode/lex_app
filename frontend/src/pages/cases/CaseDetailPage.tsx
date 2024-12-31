@@ -1,13 +1,11 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import CaseAccordCard from "@/components/cases/CaseAccordCard";
 import { Separator } from "@/components/ui/separator";
 import { CaseType, caseTypeToName } from "@/lib/caseTypeNames";
-import { formatDateToShortReadable } from "@/lib/formatUtils";
 import { cn } from "@/lib/utils";
 import { useCaseWithAccords } from "@/queries/cases";
 import { LucideLoader } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router";
+import { useParams } from "react-router";
 import { db } from "wailsjs/go/models";
 
 export default function CaseDetailPage() {
@@ -101,42 +99,5 @@ function CaseDetails({ data }: { data: db.LexCase }) {
                 </div>
             </div>
         </div>
-    )
-}
-
-function CaseAccordCard({ accord, className }: {
-    accord: db.Accord
-    className?: string
-}) {
-    const [showFullContent, setShowFullContent] = useState(false)
-    return (
-        <Card className={cn(
-            "bg-zinc-900",
-            className
-        )}>
-            <CardHeader>
-                <CardTitle className="text-lg">
-                    Fecha: {
-                        accord.dateStr && accord.dateStr.length > 0
-                            ? formatDateToShortReadable(new Date(accord.dateStr))
-                            : "Sin Fecha"
-                    }
-                </CardTitle>
-            </CardHeader>
-            <Separator className="my-2" />
-            <CardContent>
-                <p className={cn(
-                    "text-stone-200 text-lg line-clamp-5 teel-ellipsis overflow-clip",
-                    showFullContent && "line-clamp-none"
-                )}>{accord.content}</p>
-            </CardContent>
-            <Separator className="my-2" />
-            <CardFooter className="py-2">
-                <Button
-                    size="lg"
-                    variant="destructive"
-                    className="ml-auto text-base">Eliminar</Button>
-            </CardFooter>
-        </Card>
     )
 }
