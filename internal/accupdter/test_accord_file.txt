@@ -17,3 +17,5 @@
                eee/wrong     valid/invalid id
        7       invalid/id    Seventh with only    This accord only has an invalid id
                              invalid id
+       8       50/2020       Eight uft-8 chars    This accord has non ascii chars in it like ñ
+                                                  or á or é or í or ó or ú or ü or ñ

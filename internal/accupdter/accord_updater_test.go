@@ -47,38 +47,46 @@ func TestFindUpdates(t *testing.T) {
 			Content: "This accord has a valid and an invalid caseId",
 			OthIds:  []string{"1024/2048", "eee/wrong"},
 		},
-	}
-	expectNotFound := []string{"12/12"}
-
-	updtr := basicAccUpdter{
-		Fetch: mockFetch,
-		Read:  readers.NewReader(internal.RegionDefault),
-		opts: &AccUpdterOpts{
-			Region:   internal.RegionDefault,
-			CaseType: internal.CaseTypeAux1,
-			CaseIds: []string{
-				"84/2003",
-				"264/2018",
-				"13/1998",
-				"45/3000",
-				"60/1234",
-				"1024/2048",
-				"12/12",
-			},
+		{
+			CaseId:  "50/2020",
+			Nature:  "Eight uft-8 chars",
+			Content: "This accord has non ascii chars in it like ñ\nor á or é or í or ó or ú or ü or ñ",
+			OthIds:  []string{"50/2020"},
 		},
 	}
-	accords, notFound, err := updtr.FindUpdates()
+
+	updtr := GeneralUpdater{
+		conf: &GenUpdterConf{
+			Region:          internal.RegionDefault,
+			ReadFn:          readers.NewReader(internal.RegionDefault),
+			FetchFn:         mockFetch,
+			SearchStartDate: time.Now(),
+			MaxSearchBack:   0,
+		},
+		// Fetch: mockFetch,
+		// Read:  readers.NewReader(internal.RegionDefault),
+		// opts: &AccUpdterOpts{
+		// 	Region:   internal.RegionDefault,
+		// 	CaseType: internal.CaseTypeAux1,
+		// },
+	}
+	accords, err := updtr.FindUpdates(
+		[]string{
+			"84/2003:oth",
+			"264/2018:oth",
+			"13/1998:oth",
+			"45/3000:oth",
+			"60/1234:oth",
+			"1024/2048:oth",
+			"12/12:oth",
+			"50/2020:oth",
+		},
+		time.Time{},
+		0,
+		false,
+	)
 	if err != nil {
-		t.Fatalf("errored with %v", err)
-	}
-	if len(notFound) != len(expectNotFound) {
-		t.Fatalf("Expected notFoundIds to have %d ids, got %d", len(expectNotFound), len(notFound))
-	}
-	for i, expectId := range expectNotFound {
-		if expectId != notFound[i] {
-			t.Errorf("expected notFound[%d] to be %s, got %s", i, expectId, notFound[i])
-			t.Fail()
-		}
+		t.Fatalf("errored with\n  %v", err)
 	}
 	if len(accords) != len(expectAccords) {
 		t.Fatalf("Expected updatedAccords to have %d accords, got %d", len(expectAccords), len(accords))
@@ -124,15 +132,6 @@ func NewTestUpdater() *basicAccUpdter {
 		Read:  readers.NewReader(internal.RegionDefault),
 		opts: &AccUpdterOpts{
 			Region: internal.RegionDefault,
-			CaseIds: []string{
-				"84/2003",
-				"264/2018",
-				"13/1998",
-				"45/3000",
-				"60/1234",
-				"1024/2048",
-				"12/12",
-			},
 		},
 	}
 }
