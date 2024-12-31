@@ -155,7 +155,7 @@ func (updter *GeneralUpdater) FindUpdates(
 	if len(caseKeys) == 0 {
 		return nil, ErrNoCaseKeys
 	}
-	if startSearchDate == (time.Time{}) {
+	if startSearchDate.Equal((time.Time{})) {
 		startSearchDate = updter.conf.SearchStartDate
 	}
 	if maxSearchBack < 0 {
