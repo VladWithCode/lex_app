@@ -1,4 +1,4 @@
-import { useLocation } from "react-router";
+import { Link, useLocation } from "react-router";
 import CaseFilters from "../../components/cases/CaseFilters";
 import { Separator } from "../../components/ui/separator";
 import { useState, useRef, useEffect } from "react";
@@ -8,6 +8,7 @@ import CaseCard from "../../components/cases/CaseCard";
 import { CardContent } from "../../components/ui/card";
 import { formatDateToShortReadable } from "../../lib/formatUtils";
 import { db } from "../../../wailsjs/go/models";
+import { Button } from "../../components/ui/button";
 
 export default function CasesPage() {
     const { params, setParam } = useCasesSearchParams()
@@ -15,7 +16,13 @@ export default function CasesPage() {
     return (
         <>
             <h1 className="text-6xl font-semibold">Casos | lexApp</h1>
-            <p className="text-lg text-stone-500">Busca actualizaciones entre los casos registrados.</p>
+            <p className="text-lg text-stone-400 pt-2">Busca actualizaciones entre los casos registrados.</p>
+            <Separator className="my-2" />
+            <div className="flex gap-2 items-center">
+                <Button variant="secondary" size="lg" className="text-base" asChild>
+                    <Link to="/casos/nuevo">Registrar Caso</Link>
+                </Button>
+            </div>
             <Separator className="my-2" />
             <CaseFilters setFilter={setParam} filters={params} />
             <Separator className="my-2" />
