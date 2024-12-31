@@ -65,7 +65,7 @@ function Listing(
         </div>
     }
 
-    return <div className="flex-1 grid grid-cols-3 auto-rows-[12.5rem] gap-4 max-h-full overflow-auto">
+    return <div className="flex-1 grid grid-cols-3 auto-rows-[14rem] gap-4 max-h-full overflow-auto">
         {data.length == 0
             ? <div className="col-span-full self-center justify-self-center py-24">
                 <p className="text-stone-400 text-2xl font-semibold">No se encontraron casos para la búsqueda ingresada</p>
