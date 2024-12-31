@@ -542,6 +542,8 @@ func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCo
 		return nil, err
 	}
 
+	nOthIds := sql.NullString{}
+	nNature := sql.NullString{}
 	for rows.Next() {
 		var (
 			acId      sql.NullString
@@ -549,8 +551,6 @@ func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCo
 			acDate    sql.NullInt64
 			acRawData sql.NullString
 		)
-		nOthIds := sql.NullString{}
-		nNature := sql.NullString{}
 		rows.Scan(
 			&c.Id,
 			&c.CaseId,
@@ -578,12 +578,13 @@ func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCo
 			})
 		}
 
-		if nOthIds.Valid {
-			c.SetIdsFromStr(nOthIds.String)
-		}
-		if nNature.Valid {
-			c.Nature = nNature.String
-		}
+	}
+
+	if nOthIds.Valid {
+		c.SetIdsFromStr(nOthIds.String)
+	}
+	if nNature.Valid {
+		c.Nature = nNature.String
 	}
 
 	if err := rows.Err(); err != nil {
