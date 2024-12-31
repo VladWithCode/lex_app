@@ -8,6 +8,9 @@ export default {
     ],
     theme: {
     	extend: {
+            gridTemplateRows: {
+                cards: 'repeat(3, minmax(auto, 1fr))',
+            },
     		borderRadius: {
     			lg: 'var(--radius)',
     			md: 'calc(var(--radius) - 2px)',
