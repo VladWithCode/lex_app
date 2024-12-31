@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	ErrorInvalidCaseId = errors.New("caseId is not in a valid format. Should be formatted as '123/2024[-I]'")
+	ErrorInvalidCaseId = errors.New("caseId invalid format. Should be formatted as '123/2024[-I]'")
 	ErrNilOpts         = errors.New("FindFilteredCases: opts is nil")
 )
 
