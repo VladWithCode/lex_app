@@ -66,7 +66,7 @@ type UpdateCaseParams = {
 export function useUpdateCase() {
     return useMutation({
         mutationFn: ({ caseData, id }: UpdateCaseParams) => {
-            return UpdateCase(id, caseData as db.LexCase)
+            return UpdateCase(id, new db.LexCase(caseData))
         }
     })
 }
