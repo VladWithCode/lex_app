@@ -146,6 +146,67 @@ func (updter *GeneralUpdater) Update(
 	return
 }
 
+func (updter *GeneralUpdater) FindUpdates(
+	caseKeys []string,
+	startSearchDate time.Time,
+	maxSearchBack int,
+	exhaustSearch bool,
+) (accords []*UpdatedAccord, err error) {
+	if len(caseKeys) == 0 {
+		return nil, ErrNoCaseKeys
+	}
+	if startSearchDate == (time.Time{}) {
+		startSearchDate = updter.conf.SearchStartDate
+	}
+	if maxSearchBack < 0 {
+		maxSearchBack = updter.conf.MaxSearchBack
+	}
+
+	caseTypesMap := genCaseTypeMap(caseKeys)
+
+	accords = []*UpdatedAccord{}
+	searchErrors := []error{}
+	// Refers to the searches per caseType not per caseId
+	pendingSearch := len(caseTypesMap)
+
+	updates := make(chan []*UpdatedAccord)
+	complete := make(chan error)
+
+	for cType, cIds := range caseTypesMap {
+		go updter.getUpdates(&getUpdatesParams{
+			updates:       updates,
+			complete:      complete,
+			caseType:      cType,
+			caseIds:       cIds,
+			startDate:     startSearchDate,
+			daysBack:      maxSearchBack,
+			exhaustSearch: exhaustSearch,
+		})
+	}
+
+	for pendingSearch > 0 {
+		select {
+		case updt := <-updates:
+			accords = append(accords, updt...)
+		case err := <-complete:
+			pendingSearch--
+			if err != nil {
+				searchErrors = append(searchErrors, err)
+			}
+		}
+	}
+
+	if len(accords) == 0 {
+		for i, sErr := range searchErrors {
+			fmt.Printf("Search Err[%d]: %v\n", i, sErr)
+		}
+
+		return nil, ErrNoUpdates
+	}
+
+	return
+}
+
 type getUpdatesParams struct {
 	updates  chan<- []*UpdatedAccord
 	complete chan<- error
@@ -214,7 +275,7 @@ func (updter *GeneralUpdater) getUpdates(updateParams *getUpdatesParams) {
 			caseRow.CaseType = string(updateParams.caseType)
 			acc := UpdatedAccord{
 				CaseKey:  caseRow.GetCaseKey(),
-				CaseType: internal.CaseType(caseRow.CaseType),
+				CaseType: updateParams.caseType,
 				CaseId:   caseRow.CaseId,
 				Content:  caseRow.Accord,
 				Date:     searchDate,

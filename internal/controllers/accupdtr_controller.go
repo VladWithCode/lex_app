@@ -32,6 +32,14 @@ func NewAccordUpdaterCtl() *AccordUpdaterCtl {
 	}
 }
 
+func (ctl *AccordUpdaterCtl) FindUpdates(
+	caseKeys []string,
+	searchStartDate time.Time,
+	maxSearchBack int,
+	exhaustSearch bool,
+) ([]*accupdter.UpdatedAccord, error) {
+	return ctl.generalUpdater.FindUpdates(caseKeys, searchStartDate, maxSearchBack, exhaustSearch)
+}
 
 func (ctl *AccordUpdaterCtl) Update(caseKeys []string, searchStartDate time.Time, maxSearchBack int, exhaustSearch bool) ([]string, error) {
 	return ctl.generalUpdater.Update(caseKeys, searchStartDate, maxSearchBack, exhaustSearch)
