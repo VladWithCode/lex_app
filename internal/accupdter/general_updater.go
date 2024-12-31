@@ -66,6 +66,7 @@ func (updter *GeneralUpdater) Update(
 	caseKeys []string,
 	startSearchDate time.Time,
 	maxSearchBack int,
+	exhaustSearch bool,
 ) (notFoundKeys []string, err error) {
 	if len(caseKeys) == 0 {
 		return nil, ErrNoCaseKeys
@@ -89,12 +90,13 @@ func (updter *GeneralUpdater) Update(
 
 	for cType, cIds := range caseTypesMap {
 		go updter.getUpdates(&getUpdatesParams{
-			updates:   updates,
-			complete:  complete,
-			caseType:  cType,
-			caseIds:   cIds,
-			startDate: startSearchDate,
-			daysBack:  maxSearchBack,
+			updates:       updates,
+			complete:      complete,
+			caseType:      cType,
+			caseIds:       cIds,
+			startDate:     startSearchDate,
+			daysBack:      maxSearchBack,
+			exhaustSearch: exhaustSearch,
 		})
 	}
 
@@ -148,10 +150,11 @@ type getUpdatesParams struct {
 	updates  chan<- []*UpdatedAccord
 	complete chan<- error
 
-	caseType  internal.CaseType
-	caseIds   []string
-	startDate time.Time
-	daysBack  int
+	caseType      internal.CaseType
+	caseIds       []string
+	startDate     time.Time
+	daysBack      int
+	exhaustSearch bool
 }
 
 func (updter *GeneralUpdater) getUpdates(updateParams *getUpdatesParams) {
@@ -201,9 +204,12 @@ func (updter *GeneralUpdater) getUpdates(updateParams *getUpdatesParams) {
 		nextPendingIds := []string{}
 		for _, cId := range pendingIds {
 			caseRow := caseTable.Find(cId)
-			if caseRow == nil {
+			if updateParams.exhaustSearch || caseRow == nil {
 				nextPendingIds = append(nextPendingIds, cId)
-				continue
+
+				if caseRow == nil {
+					continue
+				}
 			}
 			caseRow.CaseType = string(updateParams.caseType)
 			acc := UpdatedAccord{

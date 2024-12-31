@@ -67,7 +67,7 @@ type basicAccUpdter struct {
 }
 
 // Only fetches and reads, returning results
-func (updter *basicAccUpdter) FindUpdates(keys []string, ids *[]string) (updatedAccords []*UpdatedAccord, notFoundIds []string, err error) {
+func (updter *basicAccUpdter) FindUpdates(keys []string, ids *[]string, exhaustSearch bool) (updatedAccords []*UpdatedAccord, notFoundIds []string, err error) {
 	searchDate := time.Now()
 	updatedAccords = []*UpdatedAccord{}
 	notFoundIds = make([]string, len(keys))
@@ -95,7 +95,7 @@ func (updter *basicAccUpdter) FindUpdates(keys []string, ids *[]string) (updated
 	for i := 0; i <= updter.opts.MaxSearchBack; i++ {
 		data, err := updter.Fetch(searchDate, updter.opts.CaseType)
 		if err != nil {
-			if errors.Is(err, fetchers.ErrDocNotFound) {
+			if exhaustSearch || errors.Is(err, fetchers.ErrDocNotFound) {
 				continue
 			}
 
@@ -110,6 +110,9 @@ func (updter *basicAccUpdter) FindUpdates(keys []string, ids *[]string) (updated
 
 		caseTable, err := updter.Read(data)
 		if err != nil {
+			if exhaustSearch {
+				continue
+			}
 			return nil, nil, fmt.Errorf(
 				"Error ReadFail: with SearchStartDate: %s; CaseType %s; Region: %s\n  %w",
 				updter.opts.SearchStartDate.Format("2006-01-02"),
@@ -132,12 +135,15 @@ func (updter *basicAccUpdter) FindUpdates(keys []string, ids *[]string) (updated
 					OthIds:   caseRow.AllIds,
 				}
 				updatedAccords = append(updatedAccords, &acc)
+				if exhaustSearch {
+					nextSearchIds = append(nextSearchIds, id)
+				}
 				continue
 			}
 			nextSearchIds = append(nextSearchIds, id)
 		}
 
-		if len(nextSearchIds) == 0 {
+		if !exhaustSearch && len(nextSearchIds) == 0 {
 			break
 		}
 
