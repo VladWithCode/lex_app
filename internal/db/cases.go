@@ -144,7 +144,7 @@ var DefaultFindCaseOptions = FindCaseOptions{
 }
 
 func InsertCase(ctx context.Context, appDb *sql.DB, caseData *LexCase) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	otherIds := strings.Join(caseData.OtherIds, otherIdsSeparator)
