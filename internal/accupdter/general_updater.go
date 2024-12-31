@@ -14,11 +14,11 @@ import (
 )
 
 var (
-	ErrNoCaseKeys  = errors.New("No caseKeys were supplied.")
-	ErrFatalSearch = errors.New("Search for case updates failed")
-	ErrNoUpdates   = errors.New("Found no updates for the provided parameters")
-	ErrNilStore    = errors.New("The configured store is nil. But a store dependant method was called")
-	ErrFailSave    = errors.New("Failed to save accords")
+	ErrNoCaseKeys  = errors.New("no caseKeys were supplied")
+	ErrFatalSearch = errors.New("search for case updates failed")
+	ErrNoUpdates   = errors.New("found no updates for the provided parameters")
+	ErrNilStore    = errors.New("the configured store is nil. But a store dependant method was called")
+	ErrFailSave    = errors.New("failed to save accords")
 )
 
 type CaseTypesMap map[internal.CaseType][]string
