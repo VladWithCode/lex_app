@@ -58,7 +58,7 @@ func NewCase(caseId, caseType string) (*LexCase, error) {
 
 	id, err := uuid.NewV7()
 	if err != nil {
-		return nil, fmt.Errorf("error creating a new UUID for case %v:\n\t%w", caseId, err)
+		return nil, fmt.Errorf("%w\n\t%w", ErrGenUUID, err)
 	}
 
 	c.Id = id.String()

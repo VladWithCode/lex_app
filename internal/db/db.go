@@ -37,3 +37,8 @@ func Connect() (db *sql.DB, err error) {
 
 	return db, nil
 }
+
+// Common errors
+var (
+	ErrGenUUID = errors.New("Error generating UUID")
+)
