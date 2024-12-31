@@ -83,7 +83,7 @@ type FindCaseUpdatesParams = {
 export function useFindCasesUpdates() {
     return useMutation({
         mutationFn: ({ caseId, caseType, searchStartDate, maxSearchBack, exhaustSearch }: FindCaseUpdatesParams) => {
-            return FindCaseUpdates([caseId+":"+caseType], searchStartDate, maxSearchBack, exhaustSearch)
+            return FindCaseUpdates([caseId + ":" + caseType], searchStartDate, maxSearchBack, exhaustSearch)
         }
     })
 }
@@ -91,7 +91,7 @@ export function useFindCasesUpdates() {
 export function useUpdateCaseAccords(id: string) {
     return useMutation({
         mutationFn: ({ caseId, caseType, searchStartDate, maxSearchBack, exhaustSearch }: FindCaseUpdatesParams) => {
-            return UpdateCaseAccords([caseId+":"+caseType], searchStartDate, maxSearchBack, exhaustSearch)
+            return UpdateCaseAccords([caseId + ":" + caseType], searchStartDate, maxSearchBack, exhaustSearch)
         },
         onSuccess: () => {
             queryClient.invalidateQueries({
