@@ -534,6 +534,7 @@ func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCo
 		LEFT JOIN accords
 		ON cases.id = accords.for_case
 		WHERE cases.id = :Id
+		ORDER BY date DESC NULLS LAST
 		LIMIT :AccordCount`,
 		sql.Named("Id", id),
 		sql.Named("AccordCount", accordCount),
