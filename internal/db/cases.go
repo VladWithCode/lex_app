@@ -525,7 +525,7 @@ func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCo
 			cases.nature,
 			accords.id,
 			accords.content,
-			date(accords.date) as date,
+			unixepoch(accords.date, 'unixepoch') as date,
 			accords.raw_data
 		FROM cases
 		LEFT JOIN accords
