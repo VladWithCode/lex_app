@@ -521,7 +521,10 @@ func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCo
 			cases.id,
 			cases.case_id,
 			cases.case_type,
+			cases.case_year,
+			cases.case_no,
 			cases.alias,
+			cases.other_ids,
 			cases.nature,
 			accords.id,
 			accords.content,
@@ -546,12 +549,16 @@ func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCo
 			acDate    sql.NullTime
 			acRawData sql.NullString
 		)
+		nOthIds := sql.NullString{}
 		nNature := sql.NullString{}
 		rows.Scan(
 			&c.Id,
 			&c.CaseId,
 			&c.CaseType,
+			&c.CaseYear,
+			&c.CaseNo,
 			&c.Alias,
+			&nOthIds,
 			&nNature,
 			&acId,
 			&acContent,
@@ -567,6 +574,13 @@ func FindCaseWithAccords(ctx context.Context, appDb *sql.DB, id string, accordCo
 				rawData: acRawData.String,
 				ForCase: c.Id,
 			})
+		}
+
+		if nOthIds.Valid {
+			c.SetIdsFromStr(nOthIds.String)
+		}
+		if nNature.Valid {
+			c.Nature = nNature.String
 		}
 	}
 
