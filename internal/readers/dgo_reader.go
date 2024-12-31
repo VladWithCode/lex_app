@@ -68,7 +68,16 @@ func dgoReader(data *[]byte) (caseTable *CaseTable, err error) {
 		currCol := 0
 
 		for pos, rowLen := 0, len(row); pos < rowLen; pos++ {
-			tempCols[currCol] = utf8.AppendRune(tempCols[currCol], rune(row[pos]))
+			if utf8.RuneStart(row[pos]) {
+				end := pos
+				for !utf8.FullRune(row[pos:end]) {
+					end++
+				}
+				r, _ := utf8.DecodeRune(row[pos:end])
+				tempCols[currCol] = utf8.AppendRune(tempCols[currCol], r)
+			} else {
+				continue
+			}
 
 			// Once we hit the last column, there no need for checks
 			// just save the bytes until the row's end
