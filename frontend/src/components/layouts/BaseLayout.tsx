@@ -3,6 +3,7 @@ import { SidebarProvider } from "../ui/sidebar";
 import AppSidebar from "../sidebar/AppSidebar";
 import { PropsWithChildren } from "react";
 import { useSidebarStore } from "../../stores/useSidebarStore";
+import { Toaster } from "../ui/sonner";
 
 export default function BaseLayout({ children }: PropsWithChildren) {
     const sidebarStore = useSidebarStore()
@@ -12,6 +13,7 @@ export default function BaseLayout({ children }: PropsWithChildren) {
             <div className="relative flex flex-col w-full h-[calc(100vh-2rem)] z-0 p-2">
                 {children !== undefined ? children : <Outlet />}
             </div>
+            <Toaster closeButton richColors duration={8000} />
         </SidebarProvider>
     )
 }
