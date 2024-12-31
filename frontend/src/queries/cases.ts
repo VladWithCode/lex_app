@@ -49,11 +49,12 @@ export function useCaseWithAccords(id: string, accordCount: number) {
 type CreateCaseParams = {
     caseId: string;
     caseType: string;
+    alias?: string;
 }
 export function useCreateCase() {
     return useMutation({
-        mutationFn: ({ caseId, caseType }: CreateCaseParams) => {
-            return CreateCase(caseId, caseType)
+        mutationFn: ({ caseId, caseType, alias }: CreateCaseParams) => {
+            return CreateCase(caseId, caseType, alias || "")
         }
     })
 }
