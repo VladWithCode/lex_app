@@ -97,6 +97,9 @@ export function useUpdateCaseAccords(id: string) {
             queryClient.invalidateQueries({
                 queryKey: caseQueryKeys.detail(id)
             })
+            queryClient.refetchQueries({
+                queryKey: caseQueryKeys.detail(id)
+            })
         }
     })
 }
