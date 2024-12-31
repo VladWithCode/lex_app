@@ -48,12 +48,13 @@ func (ctl *CaseController) FindCaseWithAccords(id string, accordCount int) (*db.
 	return db.FindCaseWithAccords(ctl.ctx, ctl.appDb.Db, id, accordCount)
 }
 
-func (ctl *CaseController) CreateCase(caseId, caseType string) (*db.LexCase, error) {
+func (ctl *CaseController) CreateCase(caseId, caseType, alias string) (*db.LexCase, error) {
 	newCase, err := db.NewCase(caseId, caseType)
 	if err != nil {
 		return nil, err
 	}
 
+	newCase.Alias = alias
 	if err := db.InsertCase(ctl.ctx, ctl.appDb.Db, newCase); err != nil {
 		return nil, err
 	}
