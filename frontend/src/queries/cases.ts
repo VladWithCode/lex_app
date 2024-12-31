@@ -95,10 +95,7 @@ export function useUpdateCaseAccords(id: string) {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: caseQueryKeys.detail(id)
-            })
-            queryClient.refetchQueries({
-                queryKey: caseQueryKeys.detail(id)
+                queryKey: caseQueryKeys.detailAndAccords(id, 15)
             })
         }
     })
