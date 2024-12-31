@@ -86,9 +86,6 @@ func dgoReader(data *[]byte) (caseTable *CaseTable, err error) {
 			}
 
 			if !countingColLen {
-				// fmt.Printf("col[%d] len: %d\n", currCol, colLens[currCol])
-				// fmt.Printf("tempCol[%d] len(%d): %s\n\n", currCol, len(tempCols[currCol]), string(tempCols[currCol]))
-
 				if len(tempCols[currCol]) == colLens[currCol] {
 					// If the length of the columns is set we use the length
 					// to determine when to change column
