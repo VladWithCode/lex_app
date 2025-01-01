@@ -18,6 +18,9 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+//go:embed all:data/migrations
+var migrations embed.FS
+
 func main() {
 	// Connect to DB
 	db, err := _db.Connect()

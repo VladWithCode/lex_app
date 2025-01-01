@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"database/sql"
+	"log"
 
+	"github.com/pressly/goose/v3"
 	"github.com/vladwithcode/lex_app/internal"
 )
 
@@ -23,4 +25,16 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context, db *sql.DB) {
 	a.ctx = ctx
 	a.appDb = internal.NewAppDb(db)
+
+	// Migrate DB
+	err := goose.SetDialect("sqlite3")
+	if err != nil {
+		log.Fatalf("couldn't set dialect: %v\n", err)
+	}
+
+	goose.SetBaseFS(migrations)
+	err = goose.Up(db, "data/migrations")
+	if err != nil {
+		log.Fatalf("couldn't migrate DB: %v\n", err)
+	}
 }
