@@ -2,9 +2,10 @@ package db
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 	"os"
 
-	"github.com/pkg/errors"
 	_ "modernc.org/sqlite"
 )
 
@@ -32,7 +33,7 @@ func Connect() (db *sql.DB, err error) {
 	_, err = db.Exec("PRAGMA foreign_keys = 1")
 
 	if err != nil {
-		return nil, errors.Wrap(err, "The application requires a version SQLite that allows for foreign key constraint usage.")
+		return nil, fmt.Errorf("failed PRAGMA exec: %w\n  %w", ErrForeignKeysUnsupported, err)
 	}
 
 	return db, nil
@@ -40,5 +41,6 @@ func Connect() (db *sql.DB, err error) {
 
 // Common errors
 var (
-	ErrGenUUID = errors.New("Error generating UUID")
+	ErrGenUUID                = errors.New("error generating UUID")
+	ErrForeignKeysUnsupported = errors.New("the application requires a version SQLite that allows for foreign key constraint usage.")
 )
