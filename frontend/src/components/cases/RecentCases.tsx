@@ -24,17 +24,32 @@ export default function RecentCases() {
         {data.map(c => (
             <CaseCard key={c.id} caseData={c}>
                 <CardContent className="flex flex-col p-2 gap-2 grow">
-                    <p className="text-stone-200 line-clamp-3 overflow-clip text-ellipsis">
-                        {c.accords[0].content}
-                    </p>
-                    <p className="text-stone-400 font-semibold mt-auto text-sm">
-                        {c.nature.toLowerCase()}
-                    </p>
-                    <p className="text-stone-400 font-semibold mt-auto">
-                        Fecha de Acuerdo: <span className="capitalize">{
-                            formatDateToShortReadable(new Date(c.accords[0].dateStr))
-                        }</span>
-                    </p>
+                    {
+                        c.accords.length > 0
+                            ? (
+                                <>
+                                    <p className="text-stone-200 line-clamp-2 overflow-clip text-ellipsis">
+                                        {c.accords[0].content}
+                                    </p>
+                                    <p className="text-stone-400 font-semibold mt-auto text-sm">
+                                        {c.nature.toLowerCase()}
+                                    </p>
+                                    <p className="text-stone-400 font-semibold mt-auto">
+                                        Fecha de Acuerdo: <span className="capitalize">{
+                                            formatDateToShortReadable(new Date(c.accords[0].dateStr))
+                                        }</span>
+                                    </p>
+                                </>
+                            )
+                            : (
+                                <>
+                                    <p className="text-stone-400 m-auto">SIN ACUERDO</p>
+                                    <p className="text-stone-400 font-semibold mt-auto text-sm">
+                                        {c.nature.toLowerCase()}
+                                    </p>
+                                </>
+                            )
+                    }
                 </CardContent>
             </CaseCard>
         ))}
