@@ -9,14 +9,14 @@ import { CardContent } from "../../components/ui/card";
 import { formatDateToShortReadable } from "../../lib/formatUtils";
 import { db } from "../../../wailsjs/go/models";
 import { Button } from "../../components/ui/button";
+import BasePageHeader from "@/components/layouts/BasePageHeader";
 
 export default function CasesPage() {
     const { params, setParam } = useCasesSearchParams()
 
     return (
         <>
-            <h1 className="text-6xl font-semibold">Casos | lexApp</h1>
-            <p className="text-lg text-stone-400 pt-2">Busca actualizaciones entre los casos registrados.</p>
+            <BasePageHeader title="Casos" description="Busca actualizaciones entre los casos registrados." />
             <Separator className="my-2" />
             <div className="flex gap-2 items-center">
                 <Button variant="secondary" size="lg" className="text-base" asChild>

@@ -1,5 +1,6 @@
 import CaseAccordCard from "@/components/cases/CaseAccordCard";
 import SearchUpdatesDialog from "@/components/cases/SearchUpdatesDialog";
+import BasePageHeader from "@/components/layouts/BasePageHeader";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { CaseType, caseTypeToName } from "@/lib/caseTypeNames";
@@ -52,11 +53,15 @@ export default function CaseDetailPage() {
 
     return (
         <>
-            <h1 className="text-5xl"> Caso {data.caseId} - {caseTypeToName(data.caseType as CaseType)} | lexApp </h1>
-            {data.alias === ""
-                || <p className="text-2xl text-stone-200 font-medium py-1"> {data.alias} </p>
-            }
-            <p className="text-lg text-stone-400 pt-2">Acuerdos y detalles del caso No. {data.caseId} del juzgado {caseTypeToName(data.caseType as CaseType)}</p>
+            <BasePageHeader
+                title={`Caso ${data.caseId} - ${caseTypeToName(data.caseType as CaseType)}`}
+                description={
+                    <>
+                        {data.alias === ""
+                            || <p className="text-2xl text-stone-200 font-medium"> {data.alias} </p>}
+                        <p className="text-lg text-stone-400 pt-2">Acuerdos y detalles del caso No. {data.caseId} del juzgado {caseTypeToName(data.caseType as CaseType)}</p>
+                    </>
+                } />
             <Separator className="my-2" />
             <div className="flex items-center gap-4">
                 <Button
