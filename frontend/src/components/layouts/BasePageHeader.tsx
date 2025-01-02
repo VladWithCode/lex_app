@@ -3,7 +3,13 @@ import { LucideChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 
-export default function BasePageHeader({ title, description }: { title: string; description: string; }) {
+export default function BasePageHeader({
+    title,
+    description
+}: {
+    title: string | React.ReactElement;
+    description: string | React.ReactElement;
+}) {
     const navigate = useNavigate()
     const pathname = useLocation().pathname
     const isHome = pathname === "/"
