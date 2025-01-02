@@ -1,5 +1,4 @@
 import { Link } from "react-router";
-import CaseListing from "../components/cases/CaseListing";
 import RecentCases from "../components/cases/RecentCases";
 import { Separator } from "../components/ui/separator";
 
@@ -16,12 +15,6 @@ export default function Dashboard() {
                 </h2>
                 <div className="max-w-full overflow-auto py-1">
                     <RecentCases />
-                </div>
-                <Separator className="my-2" />
-                <h2 className="text-3xl">Actividad reciente</h2>
-                <p className="text-stone-400 pb-2">Ultimos casos en los que trabajaste</p>
-                <div className="max-w-full overflow-auto py-1">
-                    <CaseListing />
                 </div>
             </div>
         </>
