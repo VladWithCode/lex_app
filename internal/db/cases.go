@@ -601,7 +601,7 @@ func UpdateCaseById(ctx context.Context, appDb *sql.DB, id string, newCaseData *
 
 	if newCaseData.CaseId != "" {
 		if !isValidCaseId(newCaseData.CaseId) {
-			return fmt.Errorf("Can't insert/update case with invalid id: %s\n  %w", newCaseData.CaseId, ErrorInvalidCaseId)
+			return fmt.Errorf("can't insert/update case with invalid id: %s\n  %w", newCaseData.CaseId, ErrorInvalidCaseId)
 		}
 
 		cols = append(cols, "case_id = :CaseId")
@@ -624,7 +624,7 @@ func UpdateCaseById(ctx context.Context, appDb *sql.DB, id string, newCaseData *
 	}
 
 	if len(cols) == 0 {
-		return errors.New("No fields to update")
+		return errors.New("no fields to update")
 	}
 
 	args = append(args, sql.Named("Id", id))
