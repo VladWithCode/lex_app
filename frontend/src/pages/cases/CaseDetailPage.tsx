@@ -1,16 +1,21 @@
 import CaseAccordCard from "@/components/cases/CaseAccordCard";
+import SearchUpdatesDialog from "@/components/cases/SearchUpdatesDialog";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { CaseType, caseTypeToName } from "@/lib/caseTypeNames";
 import { cn } from "@/lib/utils";
-import { useCaseWithAccords } from "@/queries/cases";
+import { useCaseWithAccords, useUpdateCaseAccords } from "@/queries/cases";
 import { LucideLoader } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router";
+import { toast } from "sonner";
 import { db } from "wailsjs/go/models";
 
 export default function CaseDetailPage() {
     const { caseUUID } = useParams()
     const { data, status } = useCaseWithAccords(String(caseUUID), 15)
+    const updateAccords = useUpdateCaseAccords(String(caseUUID))
+    const blockAction = updateAccords.status === "pending"
 
     if (status === "pending") {
         return <div className="flex flex-col items-center justify-center gap-4 grow basis-full">
@@ -24,20 +29,63 @@ export default function CaseDetailPage() {
             <p className="text-stone-200 text-4xl font-semibold">Ocurrio un error al recuperar los casos</p>
         </div>
     }
+    const onUpdateClick = () => {
+        updateAccords.mutate({
+            caseId: data.caseId,
+            caseType: data.caseType,
+            searchStartDate: new Date(),
+            maxSearchBack: 1,
+            exhaustSearch: false,
+        }, {
+            onSuccess: () => {
+                toast.success("Actualizado")
+            },
+            onError: (err) => {
+                if (String(err).includes("no updates")) {
+                    toast.error("No hay actualizaciones para el caso")
+                } else {
+                    toast.error("Error al actualizar")
+                }
+            }
+        })
+    }
 
     return (
         <>
-            <h1 className="text-6xl">Caso {data.caseId} - {caseTypeToName(data.caseType as CaseType)} | lexApp</h1>
+            <h1 className="text-5xl"> Caso {data.caseId} - {caseTypeToName(data.caseType as CaseType)} | lexApp </h1>
             {data.alias === ""
                 || <p className="text-2xl text-stone-200 font-medium py-1"> {data.alias} </p>
             }
             <p className="text-lg text-stone-400 pt-2">Acuerdos y detalles del caso No. {data.caseId} del juzgado {caseTypeToName(data.caseType as CaseType)}</p>
             <Separator className="my-2" />
+            <div className="flex items-center gap-4">
+                <Button
+                    size="lg"
+                    className={cn(
+                        "text-base font-bold active:scale-95 transition-transform duration-150 disabled:opacity-50",
+                        updateAccords.isPending && "cursor-wait"
+                    )}
+                    disabled={blockAction}
+                    onClick={onUpdateClick}>
+                    {
+                        updateAccords.status === "pending"
+                            ? <LucideLoader className="animate-spin" />
+                            : "Buscar hoy"
+
+                    }
+                </Button>
+                <SearchUpdatesDialog
+                    caseUUID={String(caseUUID)}
+                    caseId={data.caseId}
+                    caseType={data.caseType}
+                    blockAction={blockAction} />
+            </div>
+            <Separator className="my-2" />
             <CaseDetails data={data} />
             <Separator className="my-2" />
-            <div className="flex flex-col shrink-0 grow gap-2 max-h-full overflow-auto">
+            <div className="grid grid-rows-[auto_1fr] flex-1 gap-2 overflow-hidden">
                 <h2 className="text-2xl text-stone-200">Acuerdos</h2>
-                <div className="grid grid-cols-3 gap-4 max-h-full overflow-auto">
+                <div className="row-start-2 row-span-1 grid grid-cols-3 grid-rows-cards auto-rows-auto items-start gap-4 h-full overflow-auto">
                     {
                         data.accords == null || data.accords.length == 0
                             ? <div className="col-span-full self-center justify-self-center py-24">
@@ -57,14 +105,21 @@ function CaseDetails({ data }: { data: db.LexCase }) {
         <div className="flex flex-col shrink grow-0 gap-2">
             <h2 className="text-2xl text-stone-200">Detalles</h2>
             <div className="flex gap-2 text-base">
-                <div
-                    className="grow-0 text-stone-300 rounded-sm cursor-pointer hover:bg-stone-800/70"
-                    onClick={() => setShowFullId(!showFullId)}>
-                    <p className="font-bold my-0">UUID</p>
-                    <p className={cn(
-                        "text-xl max-w-[10ch] overflow-clip text-ellipsis line-clamp-1",
-                        showFullId ? "max-w-full" : ""
-                    )}>{data.id}</p>
+                <div className="grow-0 text-stone-300 rounded-sm cursor-pointer hover:bg-stone-800/70">
+                    <p className="font-bold my-0"
+                        onClick={() => setShowFullId(!showFullId)}>UUID</p>
+                    <p
+                        className={cn(
+                            "text-xl max-w-[10ch] overflow-clip text-ellipsis line-clamp-1",
+                            showFullId ? "max-w-full select-text" : ""
+                        )}
+                        onClick={
+                            () => navigator.clipboard.writeText(data.id)
+                                .then(() => toast("ID copiado al portapapeles"))
+                                .catch(() => { })
+                        }>
+                        {data.id}
+                    </p>
                 </div>
                 <Separator className="mx-2" orientation="vertical" />
                 <div className="grow-0 text-stone-300">
