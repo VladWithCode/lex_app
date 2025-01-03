@@ -1,7 +1,8 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "lex_app",
-  "outputfilename": "lex_app",
+  "version": "v0.1.0",
+  "name": "lexApp",
+  "outputfilename": "lexApp",
   "frontend:install": "bun install",
   "frontend:build": "bun run build",
   "frontend:dev:watcher": "bun run dev",
@@ -9,6 +10,13 @@
   "author": {
     "name": "Bladimir Cabrera",
     "email": "vladwithcode@gmail.com"
+  },
+  "info": {
+      "companyName": "PPSoft",
+      "productName": "Lex App",
+      "ProductVersion": "0.1.0",
+      "copyright": "Copyright © 2025 PPSoft",
+      "comments": "Made with Tons of Coffee"
   },
   "bindings": {
       "ts_generation": {
