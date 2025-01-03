@@ -54,7 +54,7 @@ func EnsureDBFileExists(dbPath string) error {
 	}
 
 	if os.IsNotExist(err) {
-		err = os.Mkdir(filepath.Dir(dbPath), 0775)
+		err = os.MkdirAll(filepath.Dir(dbPath), 0775)
 		if err != nil && !os.IsExist(err) {
 			return err
 		}
