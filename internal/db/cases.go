@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/vladwithcode/lex_app/internal/readers"
 )
 
 const (
@@ -104,6 +105,10 @@ func (c *LexCase) AddOtherId(candidate string) error {
 	c.OtherIds = append(c.OtherIds, candidate)
 
 	return nil
+}
+
+func (c *LexCase) GetCaseKey() string {
+	return fmt.Sprintf("%s%s%s", c.CaseId, readers.CaseKeySeparator, c.CaseType)
 }
 
 func isValidCaseId(candidate string) bool {
