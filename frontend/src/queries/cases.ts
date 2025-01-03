@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { CreateCase, FindCaseById, FindCases, FindCaseWithAccords, UpdateCase } from "../../wailsjs/go/controllers/CaseController"
-import { FindUpdates as FindCaseUpdates, Update as UpdateCaseAccords } from "../../wailsjs/go/controllers/AccordUpdaterCtl"
+import { FindUpdates as FindCaseUpdates, Update as UpdateCaseAccords, FindCasesAndUpdate } from "../../wailsjs/go/controllers/AccordUpdaterCtl"
 import { db } from "../../wailsjs/go/models";
 import queryClient from "@/QueryClient";
 
@@ -96,6 +96,25 @@ export function useUpdateCaseAccords(id: string) {
         onSuccess: () => {
             queryClient.invalidateQueries({
                 queryKey: caseQueryKeys.detailAndAccords(id, 15)
+            })
+        }
+    })
+}
+
+export type FindCasesAndUpdateParams = {
+    searchStartDate: Date;
+    maxSearchBack: number;
+    exhaustSearch: boolean;
+    findOpts?: Partial<db.FindCaseOptions>;
+}
+export function useFindAndUpdateCaseAccords() {
+    return useMutation({
+        mutationFn: ({ searchStartDate, maxSearchBack, exhaustSearch, findOpts }: FindCasesAndUpdateParams) => {
+            return FindCasesAndUpdate(searchStartDate, maxSearchBack, exhaustSearch, findOpts as db.FindCaseOptions)
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: caseQueryKeys.lists()
             })
         }
     })
