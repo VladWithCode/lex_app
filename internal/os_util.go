@@ -20,13 +20,13 @@ func GetAppDataDir() (string, error) {
 		if dir == "" {
 			return "", fmt.Errorf("AppData environment variable not set")
 		}
-		dir = filepath.Join(dir, "lex_app")
+		dir = filepath.Join(dir, "lexApp")
 	case "linux":
 		d, err := os.UserHomeDir()
 		if err != nil {
 			return "", err
 		}
-		dir = filepath.Join(d, ".local", "share", "lex_app")
+		dir = filepath.Join(d, ".local", "share", "lexApp")
 	default:
 		return "", ErrUnsupportedPlatform
 	}
