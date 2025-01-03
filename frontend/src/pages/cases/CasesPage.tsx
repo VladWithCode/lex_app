@@ -10,9 +10,11 @@ import { formatDateToShortReadable } from "../../lib/formatUtils";
 import { db } from "../../../wailsjs/go/models";
 import { Button } from "../../components/ui/button";
 import BasePageHeader from "@/components/layouts/BasePageHeader";
+import GeneralUpdatesDialog from "@/components/cases/GeneralUpdatesDialog";
 
 export default function CasesPage() {
     const { params, setParam } = useCasesSearchParams()
+    const blockAction = false
 
     return (
         <>
@@ -22,6 +24,7 @@ export default function CasesPage() {
                 <Button size="lg" className="text-base font-bold" asChild>
                     <Link to="/casos/nuevo">Registrar Caso</Link>
                 </Button>
+                <GeneralUpdatesDialog blockAction={blockAction} filters={params} />
             </div>
             <Separator className="my-2" />
             <CaseFilters setFilter={setParam} filters={params} />
