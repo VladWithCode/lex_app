@@ -18,8 +18,8 @@ export default function CasesPage() {
         <>
             <BasePageHeader title="Casos" description="Busca actualizaciones entre los casos registrados." />
             <Separator className="my-2" />
-            <div className="flex gap-2 items-center">
-                <Button variant="secondary" size="lg" className="text-base" asChild>
+            <div className="flex gap-4 items-center">
+                <Button size="lg" className="text-base font-bold" asChild>
                     <Link to="/casos/nuevo">Registrar Caso</Link>
                 </Button>
             </div>
