@@ -77,5 +77,5 @@ func EnsureDBFileExists(dbPath string) error {
 // Common errors
 var (
 	ErrGenUUID                = errors.New("error generating UUID")
-	ErrForeignKeysUnsupported = errors.New("the application requires a version SQLite that allows for foreign key constraint usage.")
+	ErrForeignKeysUnsupported = errors.New("the application requires a version SQLite that allows for foreign key constraint usage")
 )
