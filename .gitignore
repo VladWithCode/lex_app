@@ -1,3 +1,6 @@
+# 3rd party
+third_party/
+
 # Wails build 
 build/
 
