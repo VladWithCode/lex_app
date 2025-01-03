@@ -28,7 +28,7 @@ export default function BasePageHeader({
             </Button>
             <div className="grow basis-full">
                 <h1 className="text-6xl font-semibold">{title}</h1>
-                <p className="text-stone-400 pt-2">{description}</p>
+                <div className="text-stone-400 pt-2">{description}</div>
             </div>
         </div>
     )
