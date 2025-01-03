@@ -4,8 +4,15 @@ import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { Select, SelectItem, SelectLabel, SelectContent, SelectGroup, SelectTrigger, SelectValue } from "../ui/select"
 
+export type CaseFilters = {
+    search: string;
+    caseNo: string;
+    caseYear: string;
+    caseType: string;
+};
+
 export type CaseFiltersParams = React.PropsWithChildren & {
-    filters: { search: string, caseNo: string, caseYear: string, caseType: string };
+    filters: CaseFilters;
     setFilter: (key: string, value: string) => void;
 }
 
